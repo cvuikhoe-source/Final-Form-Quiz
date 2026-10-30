@@ -1,0 +1,191 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    @apply bg-slate-50 text-slate-900 antialiased dark:bg-slate-950 dark:text-slate-100;
+    font-family: 'Inter', 'Noto Sans JP', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  }
+  .font-jp {
+    font-family: 'Noto Sans JP', 'Inter', system-ui, sans-serif;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    body,
+    body * {
+      transition-property: background-color, border-color, color, fill, stroke;
+      transition-duration: 200ms;
+    }
+  }
+}
+
+/* ─── Dark mode: automatic contrast for common surfaces ────── */
+@layer components {
+  .dark .bg-white {
+    background-color: #0f172a; /* slate-900 */
+  }
+  .dark .bg-slate-50 {
+    background-color: #0f172a;
+  }
+  .dark .bg-slate-100 {
+    background-color: #1e293b; /* slate-800 */
+  }
+  .dark .text-slate-800,
+  .dark .text-slate-900 {
+    color: #f1f5f9; /* slate-100 */
+  }
+  .dark .text-slate-700 {
+    color: #e2e8f0; /* slate-200 */
+  }
+  .dark .text-slate-600 {
+    color: #cbd5e1; /* slate-300 */
+  }
+  .dark .border-slate-200,
+  .dark .border-slate-100 {
+    border-color: #334155; /* slate-700 */
+  }
+  .dark .glass {
+    background-color: rgba(15, 23, 42, 0.8);
+  }
+  .dark .bg-slate-50\/60,
+  .dark .bg-slate-50\/50 {
+    background-color: rgba(30, 41, 59, 0.6);
+  }
+  .dark .bg-blue-50 {
+    background-color: rgba(23, 37, 84, 0.6); /* blue-950/60 */
+  }
+  .dark .bg-blue-50\/50 {
+    background-color: rgba(23, 37, 84, 0.4);
+  }
+  .dark .text-blue-600,
+  .dark .text-blue-700 {
+    color: #60a5fa; /* blue-400 */
+  }
+  .dark .hover\:bg-slate-100:hover {
+    background-color: #334155; /* slate-700 */
+  }
+  .dark .hover\:bg-slate-50:hover {
+    background-color: #1e293b; /* slate-800 */
+  }
+  .dark input,
+  .dark textarea,
+  .dark select {
+    background-color: #1e293b;
+    color: #f1f5f9;
+    border-color: #475569;
+  }
+  .dark input::placeholder,
+  .dark textarea::placeholder {
+    color: #64748b;
+  }
+  .dark input:focus,
+  .dark textarea:focus,
+  .dark select:focus {
+    border-color: #3b82f6; /* blue-500 */
+  }
+}
+
+@layer components {
+  .safe-top {
+    padding-top: env(safe-area-inset-top);
+  }
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .glass {
+    @apply bg-white/80 backdrop-blur-lg;
+  }
+  /* keep glass light-mode only; dark override lives in the dark block above */
+  .nice-scroll::-webkit-scrollbar {
+    width: 6px;
+  }
+  .nice-scroll::-webkit-scrollbar-thumb {
+    background-color: rgba(148, 163, 184, 0.4);
+    border-radius: 3px;
+  }
+  .nice-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(148, 163, 184, 0.4) transparent;
+  }
+}
+
+@keyframes slide-up {
+  from { transform: translateY(100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scale-in {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes slide-down {
+  from { transform: translateY(-100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.animate-slide-up { animation: slide-up 0.3s ease-out; }
+.animate-slide-down { animation: slide-down 0.3s ease-out; }
+.animate-fade-in { animation: fade-in 0.2s ease-out; }
+.animate-scale-in { animation: scale-in 0.2s ease-out; }
+
+/* ─── Flashcard 3D flip ──────────────────────────────────────── */
+.flashcard-3d {
+  perspective: 1200px;
+}
+.flashcard-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.5s ease-in-out;
+}
+.flashcard-inner.flipped {
+  transform: rotateX(180deg);
+}
+.flashcard-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  overflow-y: auto;
+}
+.flashcard-back {
+  transform: rotateX(180deg);
+}
+@media (prefers-reduced-motion: reduce) {
+  .flashcard-inner {
+    transition: none;
+  }
+  .flashcard-inner.flipped {
+    transform: none;
+  }
+  .flashcard-face {
+    position: static;
+  }
+  .flashcard-back {
+    display: none;
+  }
+  .flashcard-inner.flipped .flashcard-front {
+    display: none;
+  }
+  .flashcard-inner.flipped .flashcard-back {
+    display: block;
+    transform: none;
+  }
+}
