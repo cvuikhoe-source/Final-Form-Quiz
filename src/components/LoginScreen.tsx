@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { User } from '@/types';
 import { loadUsers, saveSession } from '@/storage';
+import { supabase } from '@/lib/supabase';
 import { toast } from './Toast';
 import { useLanguage } from '@/context/LanguageContext';
 import { ThemeToggle, LanguageToggle } from './SettingsSwitchers';
@@ -18,8 +19,70 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
+  const handleAdminLogin = async (rawPassword: string) => {
+    if (!supabase) {
+      setError(t('login.connError'));
+      toast(t('login.connError'), 'error');
+      setSubmitting(false);
+      return;
+    }
+
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+      email: 'admin@quizforms.internal',
+      password: rawPassword,
+    });
+
+    if (authError || !authData.user) {
+      setError(t('login.badCredentials'));
+      toast(t('login.failed'), 'error');
+      setSubmitting(false);
+      return;
+    }
+
+    const { data: profile, error: profileError } = await supabase
+      .from('app_users')
+      .select('id, username, full_name, role, assigned_classes, allowed_subjects, auth_user_id')
+      .eq('auth_user_id', authData.user.id)
+      .maybeSingle();
+
+    if (
+      profileError ||
+      !profile ||
+      profile.username !== 'admin' ||
+      profile.role !== 'admin' ||
+      profile.auth_user_id !== authData.user.id
+    ) {
+      await supabase.auth.signOut();
+      setError('Không tìm thấy hồ sơ người dùng hợp lệ.');
+      toast('Không tìm thấy hồ sơ người dùng hợp lệ.', 'error');
+      setSubmitting(false);
+      return;
+    }
+
+    const adminUser: User = {
+      id: profile.id,
+      username: profile.username,
+      password: '',
+      fullName: profile.full_name,
+      role: 'admin',
+      assignedClasses: (profile.assigned_classes as string[]) ?? [],
+      allowedSubjects: (profile.allowed_subjects as string[]) ?? [],
+    };
+
+    saveSession(adminUser);
+    toast(`Chào mừng ${adminUser.fullName}!`, 'success');
+    onLogin(adminUser);
+  };
+
   const handleLogin = async (uname: string, pwd: string) => {
     setSubmitting(true);
+    const normalizedUsername = uname.trim().toLowerCase();
+
+    if (normalizedUsername === 'admin') {
+      await handleAdminLogin(pwd);
+      return;
+    }
+
     try {
       const users = await loadUsers();
       const found = users.find((u) => u.username === uname.trim() && u.password === pwd);

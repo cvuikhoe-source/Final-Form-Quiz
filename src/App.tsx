@@ -34,6 +34,7 @@ import { ListeningStudyView } from '@/components/ListeningStudyView';
 import { ReadingListView } from '@/components/ReadingListView';
 import { ReadingStudyView } from '@/components/ReadingStudyView';
 import { loadReadingLessons } from '@/storage';
+import { supabase } from '@/lib/supabase';
 import { ToastContainer, toast } from '@/components/Toast';
 import { ThemeToggle, LanguageToggle } from '@/components/SettingsSwitchers';
 import { useLanguage } from '@/context/LanguageContext';
@@ -114,8 +115,11 @@ function App() {
   // ─── Auth ──────────────────────────────────────────────────
   const handleLogin = useCallback((user: User) => { setCurrentUser(user); setView('lessons'); }, []);
   const handleLogout = useCallback(() => {
+    if (supabase && currentUser?.role === 'admin') {
+      supabase.auth.signOut().catch(() => {});
+    }
     saveSession(null); setCurrentUser(null); setActiveExam(null); setActiveLesson(null); setActiveListening(null); setListeningListOpen(false); setActiveReading(null); setReadingListOpen(false); setView('lessons');
-  }, []);
+  }, [currentUser]);
 
   // ─── Exams CRUD ────────────────────────────────────────────
   const handleCreateExam = useCallback(async (data: Omit<Exam, 'id' | 'createdAt'>) => {
