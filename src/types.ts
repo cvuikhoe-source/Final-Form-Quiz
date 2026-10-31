@@ -4,11 +4,12 @@ export type Role = 'admin' | 'teacher' | 'student';
 export interface User {
   id: string;
   username: string;
-  password: string;
+  password?: string;
   fullName: string;
   role: Role;
   assignedClasses: string[];
   allowedSubjects: string[];
+  authUserId?: string;
 }
 
 export interface Exam {

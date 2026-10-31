@@ -772,7 +772,14 @@ function PracticeEditor({ user, practice, lessons, defaultFolderId, onDone }: {
       </button>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <h2 className="text-lg font-bold text-slate-800">{practice ? t('padmin.editTitle') : t('padmin.createTitle')}</h2>
-        <button onClick={() => { setAiFocusQuestion(null); setShowAI(true); }}
+        <button onClick={() => {
+          if (!user.password) {
+            toast('Chức năng Trợ lý AI đang được nâng cấp xác thực Supabase Auth và sẽ sớm khả dụng cho tài khoản của bạn.', 'info');
+            return;
+          }
+          setAiFocusQuestion(null);
+          setShowAI(true);
+        }}
           className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-3.5 py-2 text-xs font-semibold text-white shadow-md transition-all hover:opacity-90 active:scale-[0.98]">
           {t('padmin.askAi')}
         </button>
@@ -975,7 +982,14 @@ function PracticeEditor({ user, practice, lessons, defaultFolderId, onDone }: {
                 <div className="mb-2 flex items-center justify-between">
                   <span className="text-xs font-bold text-slate-500">{t('padmin.form.questionNo', { no: i + 1 })}</span>
                   <div className="flex items-center gap-2">
-                    <button onClick={() => { setAiFocusQuestion(i + 1); setShowAI(true); }}
+                    <button onClick={() => {
+                      if (!user.password) {
+                        toast('Chức năng Trợ lý AI đang được nâng cấp xác thực Supabase Auth và sẽ sớm khả dụng cho tài khoản của bạn.', 'info');
+                        return;
+                      }
+                      setAiFocusQuestion(i + 1);
+                      setShowAI(true);
+                    }}
                       className="text-[11px] font-medium text-blue-500 hover:text-blue-700" title={t('padmin.askAiQuestionTitle')}>
                       {t('padmin.askAiQuestion')}
                     </button>
@@ -1147,7 +1161,7 @@ function PracticeEditor({ user, practice, lessons, defaultFolderId, onDone }: {
               }))}
               folderPath=""
               canManage={user.role === 'admin' || user.role === 'teacher'}
-              credentials={{ username: user.username, password: user.password }}
+              credentials={{ username: user.username, password: user.password ?? '' }}
               initialSelectedQuestionNo={aiFocusQuestion}
               onClose={() => setShowAI(false)}
               onApplyProposals={handleApplyAIProposals}

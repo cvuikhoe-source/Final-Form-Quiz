@@ -115,11 +115,11 @@ function App() {
   // ─── Auth ──────────────────────────────────────────────────
   const handleLogin = useCallback((user: User) => { setCurrentUser(user); setView('lessons'); }, []);
   const handleLogout = useCallback(() => {
-    if (supabase && (currentUser?.role === 'admin' || currentUser?.role === 'teacher')) {
+    if (supabase) {
       supabase.auth.signOut().catch(() => {});
     }
     saveSession(null); setCurrentUser(null); setActiveExam(null); setActiveLesson(null); setActiveListening(null); setListeningListOpen(false); setActiveReading(null); setReadingListOpen(false); setView('lessons');
-  }, [currentUser]);
+  }, []);
 
   // ─── Exams CRUD ────────────────────────────────────────────
   const handleCreateExam = useCallback(async (data: Omit<Exam, 'id' | 'createdAt'>) => {
@@ -139,6 +139,13 @@ function App() {
   }, [completions]);
 
   // ─── Users CRUD ────────────────────────────────────────────
+  const handleUserCreated = useCallback((newUser: User) => {
+    setUsers((prev) => {
+      const exists = prev.some((u) => u.id === newUser.id);
+      if (exists) return prev.map((u) => (u.id === newUser.id ? newUser : u));
+      return [...prev, newUser];
+    });
+  }, []);
   const handleCreateUser = useCallback(async (data: Omit<User, 'id'>) => {
     const user = await createUser(data); setUsers((prev) => [...prev, user]);
   }, []);
@@ -404,7 +411,7 @@ function App() {
         ) : canManageExams ? (
           <>
             {view === 'exams' && <AdminView exams={exams} currentUserId={currentUser.id} onCreate={handleCreateExam} onBatchCreate={handleBatchCreate} onUpdate={handleUpdateExam} onDelete={handleDeleteExam} />}
-            {(view === 'users' || view === 'students') && <UserManagementView users={users} currentUser={currentUser} onCreate={handleCreateUser} onUpdate={handleUpdateUser} onDelete={handleDeleteUser} />}
+            {(view === 'users' || view === 'students') && <UserManagementView users={users} currentUser={currentUser} onUserCreated={handleUserCreated} onCreate={handleCreateUser} onUpdate={handleUpdateUser} onDelete={handleDeleteUser} />}
             {view === 'stats' && <StatsView exams={exams} users={users} completions={completions} results={results} onResultsChanged={handleResultsChanged} />}
             {view === 'profile' && <ProfileView user={currentUser} onLogout={handleLogout} />}
           </>

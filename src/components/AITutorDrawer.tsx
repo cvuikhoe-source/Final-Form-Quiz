@@ -79,6 +79,11 @@ export function AITutorDrawer({ user, practice, questions, currentQuestionNo, st
     lastSentRef.current = now;
     setError(null);
 
+    if (!user.password) {
+      setError('Chức năng Gia sư AI đang được nâng cấp xác thực Supabase Auth và sẽ sớm khả dụng cho tài khoản của bạn.');
+      return;
+    }
+
     const userMsg: TutorMessage = { role: 'user', content: trimmed };
     const history = [...messages, userMsg].slice(-MAX_TUTOR_MESSAGES);
     setMessages((prev) => [...prev, userMsg, { role: 'model', content: '', pending: true }]);
@@ -89,7 +94,7 @@ export function AITutorDrawer({ user, practice, questions, currentQuestionNo, st
       const reply = await sendAITutorChat(
         history.map((m) => ({ role: m.role, content: m.content })),
         buildContext(),
-        { username: user.username, password: user.password },
+        { username: user.username, password: user.password ?? '' },
         practice.id,
       );
       setMessages((prev) => {

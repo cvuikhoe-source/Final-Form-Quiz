@@ -19,90 +19,129 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  const handleSupabaseLogin = async (
-    targetUser: 'admin' | 'teacher',
-    rawPassword: string
-  ) => {
-    if (!supabase) {
-      setError(t('login.connError'));
-      toast(t('login.connError'), 'error');
-      setSubmitting(false);
-      return;
-    }
-
-    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-      email: `${targetUser}@quizforms.internal`,
-      password: rawPassword,
-    });
-
-    if (authError || !authData.user) {
-      setError(t('login.badCredentials'));
-      toast(t('login.failed'), 'error');
-      setSubmitting(false);
-      return;
-    }
-
-    const { data: profile, error: profileError } = await supabase
-      .from('app_users')
-      .select('id, username, full_name, role, assigned_classes, allowed_subjects, auth_user_id')
-      .eq('auth_user_id', authData.user.id)
-      .maybeSingle();
-
-    if (
-      profileError ||
-      !profile ||
-      profile.username !== targetUser ||
-      profile.role !== targetUser ||
-      profile.auth_user_id !== authData.user.id
-    ) {
-      await supabase.auth.signOut();
-      setError('Không tìm thấy hồ sơ người dùng hợp lệ.');
-      toast('Không tìm thấy hồ sơ người dùng hợp lệ.', 'error');
-      setSubmitting(false);
-      return;
-    }
-
-    const appUser: User = {
-      id: profile.id,
-      username: profile.username,
-      password: '',
-      fullName: profile.full_name,
-      role: targetUser,
-      assignedClasses: (profile.assigned_classes as string[]) ?? [],
-      allowedSubjects: (profile.allowed_subjects as string[]) ?? [],
-    };
-
-    saveSession(appUser);
-    toast(`Chào mừng ${appUser.fullName}!`, 'success');
-    onLogin(appUser);
-  };
-
   const handleLogin = async (uname: string, pwd: string) => {
     setSubmitting(true);
     const normalizedUsername = uname.trim().toLowerCase();
 
-    if (normalizedUsername === 'admin') {
-      await handleSupabaseLogin('admin', pwd);
-      return;
-    }
-
-    if (normalizedUsername === 'teacher') {
-      await handleSupabaseLogin('teacher', pwd);
+    if (!supabase) {
+      try {
+        const users = await loadUsers();
+        const found = users.find((u) => u.username.toLowerCase() === normalizedUsername && u.password === pwd);
+        if (!found) {
+          setError(t('login.badCredentials'));
+          toast(t('login.failed'), 'error');
+          setSubmitting(false);
+          return;
+        }
+        saveSession(found);
+        toast(`Chào mừng ${found.fullName}!`, 'success');
+        onLogin(found);
+      } catch {
+        setError(t('login.connError'));
+        toast(t('login.connError'), 'error');
+        setSubmitting(false);
+      }
       return;
     }
 
     try {
-      const users = await loadUsers();
-      const found = users.find((u) => u.username === uname.trim() && u.password === pwd);
-      if (!found) {
+      // 1. Look up user account to determine Auth vs Legacy
+      const { data: account, error: accountError } = await supabase
+        .from('app_users')
+        .select('id, username, auth_user_id')
+        .eq('username', normalizedUsername)
+        .maybeSingle();
+
+      if (accountError) {
+        setError(t('login.connError'));
+        toast(t('login.connError'), 'error');
+        setSubmitting(false);
+        return;
+      }
+
+      if (!account) {
         setError(t('login.badCredentials'));
         toast(t('login.failed'), 'error');
         setSubmitting(false);
         return;
       }
-      saveSession(found);
-      toast(`Chào mừng ${found.fullName}!`, 'success');
-      onLogin(found);
+
+      // 2. If user has auth_user_id: strictly authenticate via Supabase Auth
+      if (account.auth_user_id) {
+        const internalEmail = `${normalizedUsername}@quizforms.internal`;
+        const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+          email: internalEmail,
+          password: pwd,
+        });
+
+        if (authError || !authData.user) {
+          setError(t('login.badCredentials'));
+          toast(t('login.failed'), 'error');
+          setSubmitting(false);
+          return;
+        }
+
+        const { data: profile, error: profileError } = await supabase
+          .from('app_users')
+          .select('id, username, full_name, role, assigned_classes, allowed_subjects, auth_user_id')
+          .eq('auth_user_id', authData.user.id)
+          .maybeSingle();
+
+        if (
+          profileError ||
+          !profile ||
+          profile.username.toLowerCase() !== normalizedUsername ||
+          profile.auth_user_id !== authData.user.id
+        ) {
+          await supabase.auth.signOut();
+          setError('Không tìm thấy hồ sơ người dùng hợp lệ.');
+          toast('Không tìm thấy hồ sơ người dùng hợp lệ.', 'error');
+          setSubmitting(false);
+          return;
+        }
+
+        const appUser: User = {
+          id: profile.id,
+          username: profile.username,
+          fullName: profile.full_name,
+          role: profile.role,
+          assignedClasses: (profile.assigned_classes as string[]) ?? [],
+          allowedSubjects: (profile.allowed_subjects as string[]) ?? [],
+          authUserId: profile.auth_user_id,
+        };
+
+        saveSession(appUser);
+        toast(`Chào mừng ${appUser.fullName}!`, 'success');
+        onLogin(appUser);
+        return;
+      }
+
+      // 3. Fallback only for legacy accounts where auth_user_id IS NULL
+      const { data: legacyProfile, error: legacyError } = await supabase
+        .from('app_users')
+        .select('id, username, password, full_name, role, assigned_classes, allowed_subjects, auth_user_id')
+        .eq('username', normalizedUsername)
+        .maybeSingle();
+
+      if (legacyError || !legacyProfile || legacyProfile.password !== pwd) {
+        setError(t('login.badCredentials'));
+        toast(t('login.failed'), 'error');
+        setSubmitting(false);
+        return;
+      }
+
+      const legacyUser: User = {
+        id: legacyProfile.id,
+        username: legacyProfile.username,
+        fullName: legacyProfile.full_name,
+        role: legacyProfile.role,
+        assignedClasses: (legacyProfile.assigned_classes as string[]) ?? [],
+        allowedSubjects: (legacyProfile.allowed_subjects as string[]) ?? [],
+      };
+
+      saveSession(legacyUser);
+      toast(`Chào mừng ${legacyUser.fullName}!`, 'success');
+      onLogin(legacyUser);
     } catch {
       setError(t('login.connError'));
       toast(t('login.connError'), 'error');

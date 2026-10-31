@@ -483,18 +483,19 @@ function mapUserRow(r: Record<string, unknown>): User {
   return {
     id: r.id as string,
     username: r.username as string,
-    password: r.password as string,
+    password: (r.password as string) || undefined,
     fullName: r.full_name as string,
     role: r.role as User['role'],
     assignedClasses: (r.assigned_classes as string[]) ?? [],
     allowedSubjects: (r.allowed_subjects as string[]) ?? [],
+    authUserId: (r.auth_user_id as string) ?? undefined,
   };
 }
 
 function userToRow(u: Omit<User, 'id'>) {
   return {
     username: u.username,
-    password: u.password,
+    password: u.password ?? null,
     full_name: u.fullName,
     role: u.role,
     assigned_classes: u.assignedClasses,
