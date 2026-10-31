@@ -19,7 +19,10 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  const handleAdminLogin = async (rawPassword: string) => {
+  const handleSupabaseLogin = async (
+    targetUser: 'admin' | 'teacher',
+    rawPassword: string
+  ) => {
     if (!supabase) {
       setError(t('login.connError'));
       toast(t('login.connError'), 'error');
@@ -28,7 +31,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
     }
 
     const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-      email: 'admin@quizforms.internal',
+      email: `${targetUser}@quizforms.internal`,
       password: rawPassword,
     });
 
@@ -48,8 +51,8 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
     if (
       profileError ||
       !profile ||
-      profile.username !== 'admin' ||
-      profile.role !== 'admin' ||
+      profile.username !== targetUser ||
+      profile.role !== targetUser ||
       profile.auth_user_id !== authData.user.id
     ) {
       await supabase.auth.signOut();
@@ -59,19 +62,19 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
       return;
     }
 
-    const adminUser: User = {
+    const appUser: User = {
       id: profile.id,
       username: profile.username,
       password: '',
       fullName: profile.full_name,
-      role: 'admin',
+      role: targetUser,
       assignedClasses: (profile.assigned_classes as string[]) ?? [],
       allowedSubjects: (profile.allowed_subjects as string[]) ?? [],
     };
 
-    saveSession(adminUser);
-    toast(`Chào mừng ${adminUser.fullName}!`, 'success');
-    onLogin(adminUser);
+    saveSession(appUser);
+    toast(`Chào mừng ${appUser.fullName}!`, 'success');
+    onLogin(appUser);
   };
 
   const handleLogin = async (uname: string, pwd: string) => {
@@ -79,7 +82,12 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
     const normalizedUsername = uname.trim().toLowerCase();
 
     if (normalizedUsername === 'admin') {
-      await handleAdminLogin(pwd);
+      await handleSupabaseLogin('admin', pwd);
+      return;
+    }
+
+    if (normalizedUsername === 'teacher') {
+      await handleSupabaseLogin('teacher', pwd);
       return;
     }
 

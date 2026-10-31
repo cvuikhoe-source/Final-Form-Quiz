@@ -115,7 +115,7 @@ function App() {
   // ─── Auth ──────────────────────────────────────────────────
   const handleLogin = useCallback((user: User) => { setCurrentUser(user); setView('lessons'); }, []);
   const handleLogout = useCallback(() => {
-    if (supabase && currentUser?.role === 'admin') {
+    if (supabase && (currentUser?.role === 'admin' || currentUser?.role === 'teacher')) {
       supabase.auth.signOut().catch(() => {});
     }
     saveSession(null); setCurrentUser(null); setActiveExam(null); setActiveLesson(null); setActiveListening(null); setListeningListOpen(false); setActiveReading(null); setReadingListOpen(false); setView('lessons');
