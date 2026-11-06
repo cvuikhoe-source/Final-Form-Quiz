@@ -1,0 +1,217 @@
+[
+  {
+    "id": "user-admin",
+    "username": "admin",
+    "password": "admin123",
+    "full_name": "Quản Trị Viên",
+    "role": "admin",
+    "assigned_classes": [],
+    "allowed_subjects": [],
+    "created_at": "2026-10-30T17:18:53.246069+00:00",
+    "auth_user_id": "f0f2e018-0658-47f3-a91f-bc408f897fa2"
+  },
+  {
+    "id": "user-1793419811125-mqzpt",
+    "username": "hs_10a2_lan",
+    "password": null,
+    "full_name": "Hồ Ngọc Lan",
+    "role": "student",
+    "assigned_classes": [
+      "10A1"
+    ],
+    "allowed_subjects": [],
+    "created_at": "2026-10-31T04:10:11.324778+00:00",
+    "auth_user_id": "5fba9664-6d5e-4f2d-b460-c79657c7611b"
+  },
+  {
+    "id": "user-1793419811630-4tzc0",
+    "username": "hs_10a2_khanh",
+    "password": null,
+    "full_name": "Ngô Gia Khánh",
+    "role": "student",
+    "assigned_classes": [
+      "10A1"
+    ],
+    "allowed_subjects": [],
+    "created_at": "2026-10-31T04:10:11.708031+00:00",
+    "auth_user_id": "7a3154a7-e683-4e1b-96ff-c93b22e3063c"
+  },
+  {
+    "id": "user-1793419812015-qfhi9",
+    "username": "hs_10a2_linh",
+    "password": null,
+    "full_name": "Đỗ Phương Linh",
+    "role": "student",
+    "assigned_classes": [
+      "10A1"
+    ],
+    "allowed_subjects": [],
+    "created_at": "2026-10-31T04:10:12.084216+00:00",
+    "auth_user_id": "df5dfee3-4773-4503-aeae-b3538b475ca6"
+  },
+  {
+    "id": "user-1793419807719-zuojh",
+    "username": "hs_10a1_an",
+    "password": null,
+    "full_name": "Nguyễn Văn An",
+    "role": "student",
+    "assigned_classes": [
+      "10A2"
+    ],
+    "allowed_subjects": [],
+    "created_at": "2026-10-31T04:10:07.782403+00:00",
+    "auth_user_id": "39c85e21-1400-4795-aebf-a1bad1ee0fa8"
+  },
+  {
+    "id": "user-1793419808232-mo35h",
+    "username": "hs_10a1_binh",
+    "password": null,
+    "full_name": "Trần Thị Bình",
+    "role": "student",
+    "assigned_classes": [
+      "10A2"
+    ],
+    "allowed_subjects": [],
+    "created_at": "2026-10-31T04:10:08.296658+00:00",
+    "auth_user_id": "ccd2d464-3a77-43e6-913e-20ca409675f9"
+  },
+  {
+    "id": "user-1793419808613-e4uk1",
+    "username": "hs_10a1_cuong",
+    "password": null,
+    "full_name": "Lê Hoàng Cường",
+    "role": "student",
+    "assigned_classes": [
+      "10A3"
+    ],
+    "allowed_subjects": [],
+    "created_at": "2026-10-31T04:10:08.677956+00:00",
+    "auth_user_id": "0cc87c04-c5ac-414c-947b-4567a0ba1f8c"
+  },
+  {
+    "id": "user-1793419809326-eiwzh",
+    "username": "hs_10a1_dung",
+    "password": null,
+    "full_name": "Phạm Thu Dung",
+    "role": "student",
+    "assigned_classes": [
+      "10A3"
+    ],
+    "allowed_subjects": [],
+    "created_at": "2026-10-31T04:10:09.389229+00:00",
+    "auth_user_id": "355b7ab7-395a-430f-aad2-eb67d7932a16"
+  },
+  {
+    "id": "user-1793419809859-numbl",
+    "username": "hs_10a1_dat",
+    "password": null,
+    "full_name": "Võ Minh Đạt",
+    "role": "student",
+    "assigned_classes": [
+      "10A2"
+    ],
+    "allowed_subjects": [],
+    "created_at": "2026-10-31T04:10:09.945411+00:00",
+    "auth_user_id": "c6870678-a602-42b7-9d9f-a6404a72fd3f"
+  },
+  {
+    "id": "user-1793419810263-0j504",
+    "username": "hs_10a2_giang",
+    "password": null,
+    "full_name": "Đặng Thùy Giang",
+    "role": "student",
+    "assigned_classes": [
+      "10A2"
+    ],
+    "allowed_subjects": [],
+    "created_at": "2026-10-31T04:10:10.326438+00:00",
+    "auth_user_id": "e6629f64-ad3e-4cc1-8e66-3ba0830a24ef"
+  },
+  {
+    "id": "user-1793419806920-qvziw",
+    "username": "gv_tuan03",
+    "password": null,
+    "full_name": "Lê Minh Tuấn",
+    "role": "teacher",
+    "assigned_classes": [
+      "10A3"
+    ],
+    "allowed_subjects": [],
+    "created_at": "2026-10-31T04:10:06.988226+00:00",
+    "auth_user_id": "a6bed122-231d-4acd-b014-7426403cb886"
+  },
+  {
+    "id": "user-1793419806132-2aif8",
+    "username": "gv_hoa02",
+    "password": null,
+    "full_name": "Trần Thị Hoa",
+    "role": "teacher",
+    "assigned_classes": [
+      "10A2"
+    ],
+    "allowed_subjects": [],
+    "created_at": "2026-10-31T04:10:06.349005+00:00",
+    "auth_user_id": "9b57be44-999d-44f1-8471-f45de77c49ee"
+  },
+  {
+    "id": "user-teacher",
+    "username": "teacher",
+    "password": "teacher1234",
+    "full_name": "Thầy Nguyễn Văn Khoa",
+    "role": "teacher",
+    "assigned_classes": [
+      "10A1"
+    ],
+    "allowed_subjects": [
+      "N2"
+    ],
+    "created_at": "2026-10-30T17:18:53.246069+00:00",
+    "auth_user_id": "69332eab-243d-4a93-8c75-93a00df0bd84"
+  },
+  {
+    "id": "user-hs-10a1",
+    "username": "hs_10a1",
+    "password": "123456",
+    "full_name": "Nguyễn Văn An",
+    "role": "student",
+    "assigned_classes": [
+      "Nhật Ngữ"
+    ],
+    "allowed_subjects": [
+      "N2"
+    ],
+    "created_at": "2026-10-30T17:18:53.246069+00:00",
+    "auth_user_id": null
+  },
+  {
+    "id": "user-1793413577021-mvq1q",
+    "username": "hs_test01",
+    "password": null,
+    "full_name": "Học sinh Test 01",
+    "role": "student",
+    "assigned_classes": [
+      "Nhật Ngữ"
+    ],
+    "allowed_subjects": [
+      "N2"
+    ],
+    "created_at": "2026-10-31T02:26:17.021+00:00",
+    "auth_user_id": "c6aba2e1-94e4-428b-9a9f-1e123d04817e"
+  },
+  {
+    "id": "user-1793419810757-yg5r1",
+    "username": "hs_10a2_huy",
+    "password": null,
+    "full_name": "Bùi Quốc Huy",
+    "role": "student",
+    "assigned_classes": [
+      "10A1",
+      "Nhật Ngữ"
+    ],
+    "allowed_subjects": [
+      "N2"
+    ],
+    "created_at": "2026-10-31T04:10:10.82394+00:00",
+    "auth_user_id": "dfd187d6-cfa9-400a-87f3-b0aedf480863"
+  }
+]

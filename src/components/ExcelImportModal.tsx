@@ -69,7 +69,6 @@ export function ExcelImportModal({ onClose, onImport, targetFolderId = null }: E
           let error: string | undefined;
           if (!title) error = 'Thiếu tên bài thi';
           else if (!subject) error = 'Thiếu môn học';
-          else if (!classes) error = 'Thiếu lớp áp dụng';
           else if (!formsUrl) error = 'Thiếu link Forms';
           else if (!duration || isNaN(Number(duration)) || Number(duration) <= 0) error = 'Thời gian không hợp lệ';
           else if (!deadline) error = 'Thiếu hạn nộp';
@@ -107,7 +106,8 @@ export function ExcelImportModal({ onClose, onImport, targetFolderId = null }: E
 
   const handleImport = () => {
     const exams: Omit<Exam, 'id' | 'createdAt'>[] = validRows.map((row) => {
-      const classes = row.classes.split(',').map((c) => c.trim()).filter(Boolean);
+      const parsedClasses = row.classes.split(',').map((c) => c.trim()).filter(Boolean);
+      const classes = parsedClasses.length > 0 ? parsedClasses : ['Tất cả'];
       let deadlineISO: string;
       // Parse "YYYY-MM-DD HH:mm" or "YYYY-MM-DD"
       if (row.deadline.includes(' ')) {

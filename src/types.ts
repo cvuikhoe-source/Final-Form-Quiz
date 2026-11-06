@@ -115,17 +115,197 @@ export interface Lesson {
   sortOrder: number;
   targetClasses: string[];
   categoryId: string | null;
+  folderId?: string | null;
+  createdBy?: string | null;
+  subjectId?: string | null;
+  subjectName?: string | null;
   /** Lesson-specific learning window (null = inherit from category). */
   startAt: string | null;
   deadline: string | null;
   /** Per-class overrides for this lesson: { "MVTC": { startAt, deadline } }. */
   classSchedules: Record<string, { startAt: string | null; deadline: string | null }>;
+  itemCount?: number;
+  examQuestionsCount?: number;
+  passageCount?: number;
+  lessonType?: 'standard' | 'grammar_item' | 'grammar_exam' | 'vocabulary' | 'vocabulary_exam' | 'listening' | 'reading' | 'reading_exam';
+  jlptLevel?: string;
+  description?: string;
   createdAt: string;
+}
+
+// ─── Reading Exam Passages ─────────────────────────────────────
+
+export interface ReadingExamPassage {
+  id: string;
+  lessonId: string;
+  passageKey: string;
+  passageTitle?: string;
+  passageJa: string;
+  passageVi: string;
+  sortOrder: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+// ─── Exam Practice Questions (ExamQuestion) ──────────────────
+
+export type ExamQuestionType = 'multiple_choice' | 'sentence_ordering';
+
+export interface VocabExamOptionDetail {
+  han_viet: string;
+  meaning: string;
+  example_jp: string;
+  example_vi: string;
+}
+
+export type VocabExamOptionDetails = Record<'A' | 'B' | 'C' | 'D', VocabExamOptionDetail>;
+
+export interface ExamQuestion {
+  id: string;
+  lessonId: string;
+  questionNo: number;
+  questionType: ExamQuestionType;
+  questionText: string;
+  optionA: string;
+  optionB: string;
+  optionC: string;
+  optionD: string;
+  correctAnswer: 'A' | 'B' | 'C' | 'D' | null;
+  timeSeconds: number;
+  answerExplanation: string;
+  vocabularyHanViet?: string;
+  optionDetails?: VocabExamOptionDetails;
+  passageId?: string;
+  topic?: string;
+  kanjiVocabulary?: string;
+  grammarStructures?: string;
+  sortOrder: number;
+  active: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface ExamQuestionProgress {
+  userId: string;
+  lessonId: string;
+  questionId: string;
+  selectedOption: 'A' | 'B' | 'C' | 'D' | null;
+  isCorrect: boolean | null;
+  timeSpent: number;
+  submitted?: boolean;
+  completedAt?: string;
+  updatedAt?: string;
+}
+
+// ─── Lesson Access Grants (Lesson ACL) ───────────────────────
+
+export type LessonPrincipalType = 'user' | 'class';
+export type LessonPermission = 'owner' | 'manager' | 'editor' | 'viewer';
+
+export interface LessonAccessGrant {
+  id: string;
+  lessonId: string;
+  principalType: LessonPrincipalType;
+  principalId: string;
+  permission: LessonPermission;
+  grantedBy: string;
+  createdAt: string;
+  updatedAt: string;
+  // Optional hydrated fields for UI display
+  principalName?: string;
+  principalRole?: string;
+}
+
+export interface EffectiveLessonAccess {
+  lessonId: string;
+  permission: LessonPermission | 'none';
+  canView: boolean;
+  canEdit: boolean;
+  canManage: boolean;
+  isOwner: boolean;
+}
+
+// ─── Grammar Items (Inside a Grammar Lesson) ───────────────────
+
+export interface GrammarItemExample {
+  stt: number;
+  japanese: string;
+  vietnamese: string;
+  analysis?: string;
+  vocabulary_furigana?: string;
+  vocabulary?: string;
+  note?: string;
+}
+
+export interface GrammarItemExercise {
+  stt: number;
+  type: ExerciseType | string;
+  question: string;
+  option_a?: string;
+  option_b?: string;
+  option_c?: string;
+  option_d?: string;
+  optionA?: string;
+  optionB?: string;
+  optionC?: string;
+  optionD?: string;
+  hint?: string;
+}
+
+export interface GrammarItemAnswer {
+  stt: number;
+  answer: string;
+  complete_sentence?: string;
+  fullSentence?: string;
+  detailed_explanation?: string;
+  explanation?: string;
+  distractor_errors?: string;
+  commonErrors?: string;
+  self_assessment?: string;
+  selfAssess?: string;
+}
+
+export interface GrammarItem {
+  id: string;
+  lessonId: string;
+  itemCode?: string;
+  grammarPattern: string;
+  source?: string;
+  meaning: string;
+  connectionRule: string;
+  caution?: string;
+  distinction?: string;
+  examples: GrammarItemExample[];
+  exercises: GrammarItemExercise[];
+  answers: GrammarItemAnswer[];
+  jlptLevel?: string;
+  tags?: string;
+  sortOrder: number;
+  active?: boolean;
+  createdAt: string;
+  updatedAt?: string;
+
+  // Backward compatibility fields
+  itemId?: string;
+  structure?: string;
+  explanation?: string;
+  exampleJp?: string;
+  exampleVi?: string;
+  exampleAnalysis?: string;
+  notes?: string;
 }
 
 // ─── Vocabulary Items ─────────────────────────────────────────
 
 export type MasteryStatus = 'new' | 'forgot' | 'hard' | 'almost' | 'mastered';
+
+export interface KanjiBreakdownItem {
+  kanji: string;
+  hanViet: string;
+  meaningVi: string;
+  onyomi?: string;
+  kunyomi?: string;
+}
 
 export interface VocabularyItem {
   id: string;
@@ -137,6 +317,9 @@ export interface VocabularyItem {
   onyomi: string;
   kunyomi: string;
   meaningVi: string;
+  hanViet?: string;
+  kanjiBreakdown?: KanjiBreakdownItem[];
+  kanjiMemoryHint?: string;
   jlptLevel: string;
   wordType: string;
   tags: string;
@@ -157,6 +340,15 @@ export interface VocabProgress {
   masteryStatus: MasteryStatus;
   reviewCount: number;
   lastReviewedAt: string | null;
+  nextReviewAt?: string | null;
+  viewedBack: boolean;
+}
+
+export interface GrammarProgress {
+  masteryStatus: MasteryStatus;
+  reviewCount: number;
+  lastReviewedAt: string | null;
+  nextReviewAt?: string | null;
   viewedBack: boolean;
 }
 
@@ -191,6 +383,7 @@ export interface ListeningLesson {
   classScope: string[];
   status: ListeningStatus;
   sortOrder: number;
+  folderId?: string | null;
   createdAt: string;
 }
 
@@ -290,6 +483,7 @@ export interface ReadingLesson {
   estimatedMinutes: number;
   displayOrder: number;
   status: ReadingStatus;
+  folderId?: string | null;
   createdAt: string;
 }
 
@@ -482,6 +676,33 @@ export interface ExamFolder {
 
 /** Practice (Luyện tập) folder — same shape as ExamFolder. */
 export type PracticeFolder = ExamFolder;
+
+// ─── Lesson Explorer Folders ───────────────────────────────────
+
+export const LESSON_FOLDER_CATEGORIES = {
+  GRAMMAR: 'cat-grammar',
+  VOCABULARY: 'cat-vocab',
+  LISTENING: 'cat-listening',
+  READING: 'cat-reading',
+} as const;
+
+export type LessonFolderCategoryId =
+  (typeof LESSON_FOLDER_CATEGORIES)[keyof typeof LESSON_FOLDER_CATEGORIES];
+
+export interface LessonFolder {
+  id: string;
+  categoryId: string;
+  parentId: string | null;
+  name: string;
+  description?: string | null;
+  color: FolderColor | null;
+  sortOrder: number;
+  createdBy?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+  archivedAt?: string | null;
+  inheritPermissions?: boolean;
+}
 
 export type AdminViewMode = 'exams' | 'users' | 'stats' | 'lessons' | 'practice' | 'listening' | 'reading' | 'profile';
 export type TeacherViewMode = 'exams' | 'students' | 'stats' | 'lessons' | 'practice' | 'listening' | 'reading' | 'profile';

@@ -1,4 +1,4 @@
-import type { Exam, User, CompletionRecord, ExamResult, Lesson, LessonCategory, VocabularyItem, VocabProgress, FlashcardSettings, MasteryStatus, ListeningLesson, ListeningQuestion, ListeningQuestionFull, ListeningAnswerKey, ListeningAttempt, ListeningAttemptResult, ListeningAttemptReviewDetail, ListeningSourceType, ReadingLesson, ReadingQuestionFull, ReadingQuestionSafe, ReadingGrammar, ReadingResult, ReadingAnswerDetail, ReadingProgressRecord, ReadingUiState, ExamFolder, PracticeFolder, Practice, PracticeQuestion, PracticeQuestionFull, PracticeAnswerDetail, PracticeAttempt, PracticeAttemptResult, PracticeProgress } from '@/types';
+import type { Exam, User, CompletionRecord, ExamResult, Lesson, LessonCategory, VocabularyItem, GrammarItem, GrammarItemExample, GrammarItemExercise, GrammarItemAnswer, KanjiBreakdownItem, VocabProgress, GrammarProgress, FlashcardSettings, MasteryStatus, ListeningLesson, ListeningQuestion, ListeningQuestionFull, ListeningAnswerKey, ListeningAttempt, ListeningAttemptResult, ListeningAttemptReviewDetail, ListeningSourceType, ReadingLesson, ReadingQuestionFull, ReadingQuestionSafe, ReadingGrammar, ReadingResult, ReadingAnswerDetail, ReadingProgressRecord, ReadingUiState, ExamFolder, PracticeFolder, Practice, PracticeQuestion, PracticeQuestionFull, PracticeAnswerDetail, PracticeAttempt, PracticeAttemptResult, PracticeProgress, ExamQuestion, ExamQuestionType, ExamQuestionProgress, VocabExamOptionDetails, ReadingExamPassage } from '@/types';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 
 // ─── LocalStorage keys (fallback) ──────────────────────────────
@@ -46,9 +46,8 @@ export function getSubjectMeta(subject: string) {
   return FALLBACK_COLORS[Math.abs(hash) % FALLBACK_COLORS.length];
 }
 
-// ─── Default subjects (classes start empty) ────────────────────
+// ─── Default subjects (start empty by default) ────────────────
 
-const DEFAULT_SUBJECTS = ['Toán', 'Lý', 'Hóa', 'Văn', 'Anh', 'Sử', 'Địa', 'Sinh', 'Tin'];
 
 // ─── Seed data ─────────────────────────────────────────────────
 
@@ -154,13 +153,27 @@ export function generateId(prefix: string = 'id'): string {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 }
 
-export function examVisibleForUser(exam: Exam, user: User): boolean {
+export function examVisibleForUser(
+  exam: Exam,
+  user: User,
+  effectiveFolderAccessMap?: Map<string, { canView: boolean; canManage: boolean; canEdit: boolean }>
+): boolean {
   if (user.role === 'admin' || user.role === 'teacher') return true;
+  if (user.allowedSubjects.length > 0 && !user.allowedSubjects.includes(exam.subject)) return false;
+
+  // 1. Folder ACL check
+  if (effectiveFolderAccessMap && exam.folderId) {
+    const access = effectiveFolderAccessMap.get(exam.folderId);
+    if (access !== undefined) {
+      return access.canView;
+    }
+  }
+
+  // 2. Legacy fallback
   if (exam.targetClasses.includes('Tất cả')) return true;
   if (exam.targetClasses.length === 0) return true;
   const classMatch = exam.targetClasses.some((cls) => user.assignedClasses.includes(cls));
   if (!classMatch) return false;
-  if (user.allowedSubjects.length > 0 && !user.allowedSubjects.includes(exam.subject)) return false;
   return true;
 }
 
@@ -264,40 +277,223 @@ export function isExamCompletedByUser(examId: string, userId: string, completion
 
 // ─── Subjects ──────────────────────────────────────────────────
 
+export function normalizeSubjectName(s: string): string {
+  return s.trim().replace(/\s+/g, ' ').normalize('NFC').toLowerCase();
+}
+
+export interface SubjectUsageInfo {
+  inUse: boolean;
+  userCount: number;
+  users: Array<{ id: string; username: string; fullName: string; role: string }>;
+}
+
+export async function checkSubjectUsage(name: string): Promise<SubjectUsageInfo> {
+  const cleanName = name.trim();
+  const normalized = normalizeSubjectName(cleanName);
+  let userCount = 0;
+  const usersWithSubject: Array<{ id: string; username: string; fullName: string; role: string }> = [];
+
+  if (supabase) {
+    const { data: users } = await supabase
+      .from('app_users')
+      .select('id, username, full_name, role, allowed_subjects');
+    if (users) {
+      for (const u of users) {
+        const allowed = Array.isArray(u.allowed_subjects) ? (u.allowed_subjects as string[]) : [];
+        if (allowed.some((s) => normalizeSubjectName(s) === normalized)) {
+          userCount++;
+          usersWithSubject.push({
+            id: u.id,
+            username: u.username,
+            fullName: u.full_name,
+            role: u.role,
+          });
+        }
+      }
+    }
+  }
+
+  return {
+    inUse: userCount > 0,
+    userCount,
+    users: usersWithSubject,
+  };
+}
+
+export interface SubjectItem {
+  id: string;
+  name: string;
+}
+
+export async function loadSubjectItems(): Promise<SubjectItem[]> {
+  if (supabase) {
+    const { data, error } = await supabase.from('subjects').select('id, name').order('name');
+    if (data && !error && data.length > 0) {
+      return data.map((r) => ({ id: r.id as string, name: r.name as string }));
+    }
+  }
+  const raw = localStorage.getItem(LS_SUBJECTS);
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.map((s, idx) => (typeof s === 'string' ? { id: `sub-local-${idx}`, name: s } : s));
+  } catch {
+    return [];
+  }
+}
+
 export async function loadSubjects(): Promise<string[]> {
   if (supabase) {
-    const { data } = await supabase.from('subjects').select('name').order('name');
-    if (data && data.length > 0) return data.map((r) => r.name);
-    // Seed default subjects to Supabase
-    const inserts = DEFAULT_SUBJECTS.map((name) => ({ id: generateId('sub'), name }));
-    await supabase.from('subjects').insert(inserts);
-    return DEFAULT_SUBJECTS;
+    const { data, error } = await supabase.from('subjects').select('name').order('name');
+    if (data && !error) return data.map((r) => r.name);
+    return [];
   }
   const raw = localStorage.getItem(LS_SUBJECTS);
   if (!raw) {
-    localStorage.setItem(LS_SUBJECTS, JSON.stringify(DEFAULT_SUBJECTS));
-    return DEFAULT_SUBJECTS;
+    return [];
   }
-  return JSON.parse(raw);
+  try {
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
 }
 
 export async function addSubject(name: string): Promise<string[]> {
-  const trimmed = name.trim();
+  const cleanName = name.trim().replace(/\s+/g, ' ');
+  if (!cleanName) {
+    throw new Error('Tên môn học không được để trống.');
+  }
+
+  const current = await loadSubjects();
+  const normalized = normalizeSubjectName(cleanName);
+  const exists = current.some((s) => normalizeSubjectName(s) === normalized);
+  if (exists) {
+    throw new Error('Môn học này đã tồn tại.');
+  }
+
   if (supabase) {
-    await supabase.from('subjects').insert({ id: generateId('sub'), name: trimmed });
+    const id = generateId('sub');
+    const { error: insErr } = await supabase.from('subjects').insert({
+      id,
+      name: cleanName,
+      normalized_name: normalized,
+    });
+
+    if (insErr) {
+      // Fallback if normalized_name column is not in remote schema
+      if (insErr.message?.includes('normalized_name') || insErr.code === '42703') {
+        const { error: fallbackErr } = await supabase.from('subjects').insert({
+          id,
+          name: cleanName,
+        });
+        if (fallbackErr) throw fallbackErr;
+      } else {
+        throw insErr;
+      }
+    }
     return loadSubjects();
   }
-  const current = await loadSubjects();
-  if (!current.includes(trimmed)) {
-    const next = [...current, trimmed];
-    localStorage.setItem(LS_SUBJECTS, JSON.stringify(next));
-    dispatchDataChange('subjects');
-    return next;
-  }
-  return current;
+
+  const next = [...current, cleanName];
+  localStorage.setItem(LS_SUBJECTS, JSON.stringify(next));
+  dispatchDataChange('subjects');
+  return next;
 }
 
-export async function removeSubject(name: string): Promise<string[]> {
+export async function createSubject(name: string): Promise<SubjectItem> {
+  const cleanName = name.trim().replace(/\s+/g, ' ');
+  if (!cleanName) {
+    throw new Error('Tên môn học không được để trống.');
+  }
+  const id = generateId('sub');
+  if (supabase) {
+    const normalized = normalizeSubjectName(cleanName);
+    const { error: insErr } = await supabase.from('subjects').insert({
+      id,
+      name: cleanName,
+      normalized_name: normalized,
+    });
+    if (insErr) {
+      if (insErr.message?.includes('normalized_name') || insErr.code === '42703') {
+        const { error: fallbackErr } = await supabase.from('subjects').insert({
+          id,
+          name: cleanName,
+        });
+        if (fallbackErr) throw fallbackErr;
+      } else {
+        throw insErr;
+      }
+    }
+    dispatchDataChange('subjects');
+    return { id, name: cleanName };
+  }
+  const raw = localStorage.getItem(LS_SUBJECTS);
+  const list = raw ? JSON.parse(raw) : [];
+  list.push({ id, name: cleanName });
+  localStorage.setItem(LS_SUBJECTS, JSON.stringify(list));
+  dispatchDataChange('subjects');
+  return { id, name: cleanName };
+}
+
+export async function updateSubject(oldName: string, newName: string): Promise<string[]> {
+  const cleanNew = newName.trim().replace(/\s+/g, ' ');
+  if (!cleanNew) {
+    throw new Error('Tên môn học không được để trống.');
+  }
+  const current = await loadSubjects();
+  const normalizedNew = normalizeSubjectName(cleanNew);
+  const normalizedOld = normalizeSubjectName(oldName);
+
+  if (normalizedNew !== normalizedOld) {
+    const exists = current.some((s) => normalizeSubjectName(s) === normalizedNew);
+    if (exists) {
+      throw new Error('Môn học này đã tồn tại.');
+    }
+  }
+
+  if (supabase) {
+    const { error: updErr } = await supabase
+      .from('subjects')
+      .update({ name: cleanNew, normalized_name: normalizedNew })
+      .eq('name', oldName);
+
+    if (updErr && (updErr.message?.includes('normalized_name') || updErr.code === '42703')) {
+      await supabase.from('subjects').update({ name: cleanNew }).eq('name', oldName);
+    }
+
+    // Cascade rename to app_users.allowed_subjects
+    const { data: users } = await supabase.from('app_users').select('id, allowed_subjects');
+    if (users) {
+      for (const u of users) {
+        if (Array.isArray(u.allowed_subjects) && u.allowed_subjects.includes(oldName)) {
+          const updated = u.allowed_subjects.map((s: string) => (s === oldName ? cleanNew : s));
+          await supabase.from('app_users').update({ allowed_subjects: updated }).eq('id', u.id);
+        }
+      }
+    }
+
+    return loadSubjects();
+  }
+
+  const next = current.map((s) => (s === oldName ? cleanNew : s));
+  localStorage.setItem(LS_SUBJECTS, JSON.stringify(next));
+  dispatchDataChange('subjects');
+  return next;
+}
+
+export async function removeSubject(name: string, force = false): Promise<string[]> {
+  if (!force) {
+    const usage = await checkSubjectUsage(name);
+    if (usage.inUse) {
+      throw new Error(
+        `Không thể xóa môn "${name}": Hiện có ${usage.userCount} tài khoản đang được gán môn này. Vui lòng gỡ liên kết trước khi xóa.`
+      );
+    }
+  }
+
   if (supabase) {
     await supabase.from('subjects').delete().eq('name', name);
     return loadSubjects();
@@ -553,7 +749,23 @@ export async function updateUser(id: string, updates: Partial<User>): Promise<vo
     if (updates.role !== undefined) row.role = updates.role;
     if (updates.assignedClasses !== undefined) row.assigned_classes = updates.assignedClasses;
     if (updates.allowedSubjects !== undefined) row.allowed_subjects = updates.allowedSubjects;
-    await supabase.from('app_users').update(row).eq('id', id);
+
+    const { data, error } = await supabase
+      .from('app_users')
+      .update(row)
+      .eq('id', id)
+      .select();
+
+    if (error) {
+      console.error('[storage.updateUser] Lỗi cập nhật app_users:', error);
+      throw new Error(error.message || 'Lỗi cập nhật người dùng trên Supabase');
+    }
+
+    if (!data || data.length === 0) {
+      console.warn('[storage.updateUser] Không có dòng nào được cập nhật với ID:', id);
+      throw new Error(`Không thể cập nhật người dùng (ID: ${id}). Bản ghi không tồn tại hoặc không đủ quyền.`);
+    }
+
     return;
   }
   const current = await loadUsers();
@@ -725,6 +937,26 @@ const SEED_LESSONS: Lesson[] = [
 ];
 
 function mapLessonRow(r: Record<string, unknown>): Lesson {
+  let packedMeta: Record<string, unknown> = {};
+  let userNotes = (r.notes as string) ?? '';
+  if (typeof userNotes === 'string' && userNotes.startsWith('{') && userNotes.endsWith('}')) {
+    try {
+      packedMeta = JSON.parse(userNotes);
+      userNotes = (packedMeta.userNotes as string) ?? '';
+    } catch {
+      // not json
+    }
+  }
+
+  const createdBy = (r.created_by as string | null) ?? (packedMeta.createdBy as string | null) ?? (r.createdBy as string | null) ?? null;
+  const subjectId = (r.subject_id as string | null) ?? (packedMeta.subjectId as string | null) ?? (r.subjectId as string | null) ?? null;
+  const itemCount = (r.item_count as number) ?? (packedMeta.itemCount as number) ?? (r.itemCount as number) ?? undefined;
+  const examQuestionsCount = (r.exam_questions_count as number) ?? (packedMeta.examQuestionsCount as number) ?? (r.examQuestionsCount as number) ?? undefined;
+  const passageCount = (r.passage_count as number) ?? (packedMeta.passageCount as number) ?? (r.passageCount as number) ?? undefined;
+  const lessonType = (r.lesson_type as Lesson['lessonType']) ?? (packedMeta.lessonType as Lesson['lessonType']) ?? (r.lessonType as Lesson['lessonType']) ?? undefined;
+  const jlptLevel = (r.jlpt_level as string) ?? (packedMeta.jlptLevel as string) ?? (r.jlptLevel as string) ?? undefined;
+  const description = (r.description as string) ?? (packedMeta.description as string) ?? (r.description as string) ?? undefined;
+
   return {
     id: r.id as string,
     title: r.title as string,
@@ -732,7 +964,7 @@ function mapLessonRow(r: Record<string, unknown>): Lesson {
     sheetId: (r.sheet_id as string) ?? '',
     meaning: (r.meaning as string) ?? '',
     connectionRule: (r.connection_rule as string) ?? '',
-    notes: (r.notes as string) ?? '',
+    notes: userNotes,
     distinction: (r.distinction as string) ?? '',
     examples: (r.examples as Lesson['examples']) ?? [],
     exercises: (r.exercises as Lesson['exercises']) ?? [],
@@ -740,14 +972,35 @@ function mapLessonRow(r: Record<string, unknown>): Lesson {
     sortOrder: (r.sort_order as number) ?? 0,
     targetClasses: (r.target_classes as string[]) ?? [],
     categoryId: (r.category_id as string) ?? null,
+    folderId: (r.folder_id as string | null) ?? null,
     startAt: (r.start_at as string | null) ?? null,
     deadline: (r.deadline as string | null) ?? null,
     classSchedules: (r.class_schedules as Lesson['classSchedules']) ?? {},
+    itemCount,
+    examQuestionsCount,
+    passageCount,
+    lessonType,
+    jlptLevel,
+    description,
+    createdBy,
+    subjectId,
     createdAt: (r.created_at as string) ?? new Date().toISOString(),
   };
 }
 
 function lessonToRow(l: Lesson) {
+  const meta = {
+    createdBy: l.createdBy ?? null,
+    subjectId: l.subjectId ?? null,
+    itemCount: l.itemCount ?? null,
+    examQuestionsCount: l.examQuestionsCount ?? null,
+    passageCount: l.passageCount ?? null,
+    lessonType: l.lessonType ?? null,
+    jlptLevel: l.jlptLevel ?? null,
+    description: l.description ?? null,
+    userNotes: l.notes ?? '',
+  };
+
   return {
     id: l.id,
     title: l.title,
@@ -755,7 +1008,7 @@ function lessonToRow(l: Lesson) {
     sheet_id: l.sheetId,
     meaning: l.meaning,
     connection_rule: l.connectionRule,
-    notes: l.notes,
+    notes: JSON.stringify(meta),
     distinction: l.distinction,
     examples: l.examples,
     exercises: l.exercises,
@@ -763,6 +1016,8 @@ function lessonToRow(l: Lesson) {
     sort_order: l.sortOrder,
     target_classes: l.targetClasses,
     category_id: l.categoryId,
+    folder_id: l.folderId ?? null,
+    created_by: l.createdBy ?? null,
     start_at: l.startAt,
     deadline: l.deadline,
     class_schedules: l.classSchedules ?? {},
@@ -799,8 +1054,11 @@ export async function saveLessons(lessons: Lesson[]): Promise<void> {
 export async function upsertLessons(lessons: Lesson[]): Promise<void> {
   if (supabase) {
     const rows = lessons.map(lessonToRow);
-    await supabase.from('lessons').upsert(rows, { onConflict: 'id' });
-    return;
+    const { error } = await supabase.from('lessons').upsert(rows, { onConflict: 'id' });
+    if (error) {
+      console.error('Supabase upsertLessons error:', error);
+      throw new Error(`Lỗi lưu bài học lên database: ${error.message}`);
+    }
   }
   const current = await loadLessons();
   const map = new Map(current.map((l) => [l.id, l]));
@@ -812,13 +1070,45 @@ export async function upsertLessons(lessons: Lesson[]): Promise<void> {
 
 export async function updateLesson(id: string, updates: Partial<Lesson>): Promise<void> {
   if (supabase) {
+    let updatedNotesJson: string | undefined = undefined;
+    const isMetaUpdated =
+      updates.notes !== undefined ||
+      updates.createdBy !== undefined ||
+      updates.subjectId !== undefined ||
+      updates.itemCount !== undefined ||
+      updates.examQuestionsCount !== undefined ||
+      updates.lessonType !== undefined ||
+      updates.jlptLevel !== undefined ||
+      updates.description !== undefined;
+
+    if (isMetaUpdated) {
+      const { data: existing } = await supabase.from('lessons').select('notes').eq('id', id).maybeSingle();
+      let currentMeta: Record<string, unknown> = {};
+      if (existing?.notes) {
+        try {
+          currentMeta = JSON.parse(existing.notes);
+        } catch {
+          currentMeta = { userNotes: existing.notes };
+        }
+      }
+      if (updates.createdBy !== undefined) currentMeta.createdBy = updates.createdBy;
+      if (updates.subjectId !== undefined) currentMeta.subjectId = updates.subjectId;
+      if (updates.itemCount !== undefined) currentMeta.itemCount = updates.itemCount;
+      if (updates.examQuestionsCount !== undefined) currentMeta.examQuestionsCount = updates.examQuestionsCount;
+      if (updates.lessonType !== undefined) currentMeta.lessonType = updates.lessonType;
+      if (updates.jlptLevel !== undefined) currentMeta.jlptLevel = updates.jlptLevel;
+      if (updates.description !== undefined) currentMeta.description = updates.description;
+      if (updates.notes !== undefined) currentMeta.userNotes = updates.notes;
+      updatedNotesJson = JSON.stringify(currentMeta);
+    }
+
     const row: Record<string, unknown> = {};
     if (updates.title !== undefined) row.title = updates.title;
     if (updates.source !== undefined) row.source = updates.source;
     if (updates.sheetId !== undefined) row.sheet_id = updates.sheetId;
     if (updates.meaning !== undefined) row.meaning = updates.meaning;
     if (updates.connectionRule !== undefined) row.connection_rule = updates.connectionRule;
-    if (updates.notes !== undefined) row.notes = updates.notes;
+    if (updatedNotesJson !== undefined) row.notes = updatedNotesJson;
     if (updates.distinction !== undefined) row.distinction = updates.distinction;
     if (updates.examples !== undefined) row.examples = updates.examples;
     if (updates.exercises !== undefined) row.exercises = updates.exercises;
@@ -826,11 +1116,17 @@ export async function updateLesson(id: string, updates: Partial<Lesson>): Promis
     if (updates.sortOrder !== undefined) row.sort_order = updates.sortOrder;
     if (updates.targetClasses !== undefined) row.target_classes = updates.targetClasses;
     if (updates.categoryId !== undefined) row.category_id = updates.categoryId;
+    if (updates.folderId !== undefined) row.folder_id = updates.folderId;
+    if (updates.createdBy !== undefined) row.created_by = updates.createdBy;
     if (updates.startAt !== undefined) row.start_at = updates.startAt;
     if (updates.deadline !== undefined) row.deadline = updates.deadline;
     if (updates.classSchedules !== undefined) row.class_schedules = updates.classSchedules;
-    await supabase.from('lessons').update(row).eq('id', id);
-    return;
+
+    const { error } = await supabase.from('lessons').update(row).eq('id', id);
+    if (error) {
+      console.error('Supabase updateLesson error:', error);
+      throw new Error(`Lỗi cập nhật bài học: ${error.message}`);
+    }
   }
   const current = await loadLessons();
   const next = current.map((l) => (l.id === id ? { ...l, ...updates } : l));
@@ -839,9 +1135,23 @@ export async function updateLesson(id: string, updates: Partial<Lesson>): Promis
 }
 
 export async function deleteLesson(id: string): Promise<void> {
+  // Clean up associated child records in parallel / best effort
+  try {
+    await Promise.allSettled([
+      deleteExamQuestionsByLesson(id),
+      deleteReadingPassagesByLesson(id),
+      supabase ? supabase.from('lesson_access_grants').delete().eq('lesson_id', id) : Promise.resolve(),
+    ]);
+  } catch {
+    // ignore
+  }
+
   if (supabase) {
-    await supabase.from('lessons').delete().eq('id', id);
-    return;
+    const { error } = await supabase.from('lessons').delete().eq('id', id);
+    if (error) {
+      console.error('Supabase deleteLesson error:', error);
+      throw new Error(`Lỗi xóa bài học: ${error.message}`);
+    }
   }
   const current = await loadLessons();
   localStorage.setItem(LS_LESSONS, JSON.stringify(current.filter((l) => l.id !== id)));
@@ -958,6 +1268,18 @@ export async function deleteCategory(id: string): Promise<void> {
 const LS_VOCAB = 'quizforms_vocabulary_items';
 
 function mapVocabRow(r: Record<string, unknown>): VocabularyItem {
+  let kanjiBreakdown: KanjiBreakdownItem[] = [];
+  if (Array.isArray(r.kanji_breakdown)) {
+    kanjiBreakdown = r.kanji_breakdown as KanjiBreakdownItem[];
+  } else if (typeof r.kanji_breakdown === 'string') {
+    try {
+      const parsed = JSON.parse(r.kanji_breakdown);
+      if (Array.isArray(parsed)) kanjiBreakdown = parsed;
+    } catch {
+      kanjiBreakdown = [];
+    }
+  }
+
   return {
     id: r.id as string,
     lessonId: r.lesson_id as string,
@@ -968,6 +1290,9 @@ function mapVocabRow(r: Record<string, unknown>): VocabularyItem {
     onyomi: (r.onyomi as string) ?? '',
     kunyomi: (r.kunyomi as string) ?? '',
     meaningVi: (r.meaning_vi as string) ?? '',
+    hanViet: (r.han_viet as string) ?? '',
+    kanjiBreakdown,
+    kanjiMemoryHint: (r.kanji_memory_hint as string) ?? '',
     jlptLevel: (r.jlpt_level as string) ?? '',
     wordType: (r.word_type as string) ?? '',
     tags: (r.tags as string) ?? '',
@@ -996,6 +1321,9 @@ function vocabToRow(v: VocabularyItem) {
     onyomi: v.onyomi,
     kunyomi: v.kunyomi,
     meaning_vi: v.meaningVi,
+    han_viet: v.hanViet || null,
+    kanji_breakdown: v.kanjiBreakdown && v.kanjiBreakdown.length > 0 ? v.kanjiBreakdown : null,
+    kanji_memory_hint: v.kanjiMemoryHint || null,
     jlpt_level: v.jlptLevel,
     word_type: v.wordType,
     tags: v.tags,
@@ -1044,7 +1372,31 @@ export async function loadAllVocabItems(): Promise<VocabularyItem[]> {
 export async function upsertVocabItems(items: VocabularyItem[]): Promise<void> {
   if (supabase) {
     const rows = items.map(vocabToRow);
-    await supabase.from('vocabulary_items').upsert(rows, { onConflict: 'id' });
+    const { error } = await supabase.from('vocabulary_items').upsert(rows, { onConflict: 'id' });
+    if (error) {
+      // Fallback nếu schema cache database chưa có các cột mở rộng (han_viet, kanji_breakdown, kanji_memory_hint)
+      if (
+        error.code === 'PGRST204' ||
+        error.code === '42703' ||
+        String(error.message).includes('does not exist') ||
+        String(error.message).includes('column')
+      ) {
+        console.warn('Fallback upsertVocabItems without extended columns:', error.message);
+        const safeRows = rows.map((r) => {
+          const copy: Record<string, unknown> = { ...r };
+          delete copy.han_viet;
+          delete copy.kanji_breakdown;
+          delete copy.kanji_memory_hint;
+          return copy;
+        });
+        const fallbackRes = await supabase.from('vocabulary_items').upsert(safeRows, { onConflict: 'id' });
+        if (fallbackRes.error) {
+          throw new Error(`Lưu từ vựng thất bại: ${fallbackRes.error.message}`);
+        }
+        return;
+      }
+      throw new Error(`Lưu từ vựng thất bại: ${error.message}`);
+    }
     return;
   }
   const raw = localStorage.getItem(LS_VOCAB);
@@ -1071,14 +1423,64 @@ export async function updateVocabItem(id: string, updates: Partial<VocabularyIte
     const row: Record<string, unknown> = {};
     if (updates.vocabulary !== undefined) row.vocabulary = updates.vocabulary;
     if (updates.readingHiragana !== undefined) row.reading_hiragana = updates.readingHiragana;
+    if (updates.readingRomaji !== undefined) row.reading_romaji = updates.readingRomaji;
+    if (updates.onyomi !== undefined) row.onyomi = updates.onyomi;
+    if (updates.kunyomi !== undefined) row.kunyomi = updates.kunyomi;
     if (updates.meaningVi !== undefined) row.meaning_vi = updates.meaningVi;
     if (updates.jlptLevel !== undefined) row.jlpt_level = updates.jlptLevel;
     if (updates.wordType !== undefined) row.word_type = updates.wordType;
     if (updates.tags !== undefined) row.tags = updates.tags;
     if (updates.relatedWords !== undefined) row.related_words = updates.relatedWords;
     if (updates.audioText !== undefined) row.audio_text = updates.audioText;
+    if (updates.hanViet !== undefined) row.han_viet = updates.hanViet || null;
+    if (updates.kanjiBreakdown !== undefined) {
+      row.kanji_breakdown = updates.kanjiBreakdown && updates.kanjiBreakdown.length > 0 ? updates.kanjiBreakdown : null;
+    }
+    if (updates.kanjiMemoryHint !== undefined) row.kanji_memory_hint = updates.kanjiMemoryHint || null;
+    if (updates.exampleJp1 !== undefined) row.example_jp_1 = updates.exampleJp1;
+    if (updates.exampleReading1 !== undefined) row.example_reading_1 = updates.exampleReading1;
+    if (updates.exampleVi1 !== undefined) row.example_vi_1 = updates.exampleVi1;
+    if (updates.exampleJp2 !== undefined) row.example_jp_2 = updates.exampleJp2;
+    if (updates.exampleReading2 !== undefined) row.example_reading_2 = updates.exampleReading2;
+    if (updates.exampleVi2 !== undefined) row.example_vi_2 = updates.exampleVi2;
     if (updates.active !== undefined) row.active = updates.active;
-    await supabase.from('vocabulary_items').update(row).eq('id', id);
+    if (updates.sortOrder !== undefined) row.sort_order = updates.sortOrder;
+
+    const { error, count } = await supabase
+      .from('vocabulary_items')
+      .update(row, { count: 'exact' })
+      .eq('id', id);
+
+    if (error) {
+      // Fallback nếu schema cache database chưa có các cột mở rộng
+      if (
+        error.code === 'PGRST204' ||
+        error.code === '42703' ||
+        String(error.message).includes('does not exist') ||
+        String(error.message).includes('column')
+      ) {
+        console.warn('Fallback updateVocabItem without extended columns for item:', id);
+        const safeRow = { ...row };
+        delete safeRow.han_viet;
+        delete safeRow.kanji_breakdown;
+        delete safeRow.kanji_memory_hint;
+        const fallbackRes = await supabase
+          .from('vocabulary_items')
+          .update(safeRow, { count: 'exact' })
+          .eq('id', id);
+
+        if (fallbackRes.error) {
+          throw new Error(`Cập nhật từ vựng thất bại: ${fallbackRes.error.message}`);
+        }
+        return;
+      }
+
+      console.error('Supabase updateVocabItem error:', error);
+      throw new Error(`Cập nhật từ vựng thất bại: ${error.message}`);
+    }
+    if (count === 0) {
+      throw new Error(`Không tìm thấy bản ghi từ vựng có ID ${id} để cập nhật.`);
+    }
     return;
   }
   const raw = localStorage.getItem(LS_VOCAB);
@@ -1086,6 +1488,289 @@ export async function updateVocabItem(id: string, updates: Partial<VocabularyIte
   const next = current.map((v) => (v.id === id ? { ...v, ...updates } : v));
   localStorage.setItem(LS_VOCAB, JSON.stringify(next));
   dispatchDataChange('vocab');
+}
+
+// ─── Grammar Items (Inside a Grammar Lesson) ───────────────────
+
+const LS_GRAMMAR_ITEMS = 'quizforms_grammar_items';
+
+function parseJsonArraySafe<T>(val: unknown): T[] {
+  if (Array.isArray(val)) return val as T[];
+  if (typeof val === 'string' && val.trim().startsWith('[')) {
+    try {
+      const parsed = JSON.parse(val);
+      if (Array.isArray(parsed)) return parsed as T[];
+    } catch {
+      return [];
+    }
+  }
+  return [];
+}
+
+function mapGrammarItemRow(r: Record<string, unknown>): GrammarItem {
+  const examples = parseJsonArraySafe<GrammarItemExample>(r.examples);
+  if (examples.length === 0 && (r.example_jp || r.example_vi)) {
+    examples.push({
+      stt: 1,
+      japanese: String(r.example_jp ?? ''),
+      vietnamese: String(r.example_vi ?? ''),
+      analysis: String(r.example_analysis ?? ''),
+      vocabulary: '',
+      vocabulary_furigana: '',
+      note: String(r.notes ?? ''),
+    });
+  }
+
+  const exercises = parseJsonArraySafe<GrammarItemExercise>(r.exercises);
+  const answers = parseJsonArraySafe<GrammarItemAnswer>(r.answers);
+
+  const connectionRule = String(r.connection_rule ?? r.structure ?? '');
+  const caution = String(r.caution ?? r.explanation ?? '');
+  const distinction = r.distinction ? String(r.distinction) : undefined;
+  const source = r.source ? String(r.source) : undefined;
+  const itemCode = String(r.item_code ?? r.item_id ?? '');
+
+  return {
+    id: String(r.id ?? ''),
+    lessonId: String(r.lesson_id ?? ''),
+    itemCode,
+    itemId: itemCode,
+    grammarPattern: String(r.grammar_pattern ?? r.title ?? ''),
+    source,
+    meaning: String(r.meaning ?? ''),
+    connectionRule,
+    caution,
+    distinction,
+    examples,
+    exercises,
+    answers,
+    jlptLevel: r.jlpt_level ? String(r.jlpt_level) : undefined,
+    tags: r.tags ? String(r.tags) : undefined,
+    sortOrder: Number(r.sort_order ?? 0),
+    active: r.active !== false,
+    createdAt: String(r.created_at ?? new Date().toISOString()),
+    updatedAt: String(r.updated_at ?? new Date().toISOString()),
+
+    // backward compatibility
+    structure: connectionRule,
+    explanation: caution,
+    exampleJp: r.example_jp ? String(r.example_jp) : (examples[0]?.japanese ?? ''),
+    exampleVi: r.example_vi ? String(r.example_vi) : (examples[0]?.vietnamese ?? ''),
+    exampleAnalysis: r.example_analysis ? String(r.example_analysis) : (examples[0]?.analysis ?? ''),
+    notes: r.notes ? String(r.notes) : (examples[0]?.note ?? ''),
+  };
+}
+
+function grammarItemToRow(g: GrammarItem): Record<string, unknown> {
+  const connectionRule = g.connectionRule || g.structure || '';
+  const caution = g.caution || g.explanation || '';
+  const exampleJp = g.examples?.[0]?.japanese || g.exampleJp || '';
+  const exampleVi = g.examples?.[0]?.vietnamese || g.exampleVi || '';
+  const exampleAnalysis = g.examples?.[0]?.analysis || g.exampleAnalysis || '';
+  const notes = g.examples?.[0]?.note || g.notes || '';
+
+  return {
+    id: g.id,
+    lesson_id: g.lessonId,
+    item_code: g.itemCode || g.itemId || '',
+    item_id: g.itemCode || g.itemId || '',
+    grammar_pattern: g.grammarPattern,
+    source: g.source ?? '',
+    meaning: g.meaning,
+    connection_rule: connectionRule,
+    caution,
+    distinction: g.distinction ?? '',
+    examples: g.examples ?? [],
+    exercises: g.exercises ?? [],
+    answers: g.answers ?? [],
+    jlpt_level: g.jlptLevel ?? '',
+    tags: g.tags ?? '',
+    sort_order: g.sortOrder,
+    active: g.active !== false,
+    created_at: g.createdAt || new Date().toISOString(),
+    updated_at: g.updatedAt || new Date().toISOString(),
+
+    // backward compatibility table columns
+    structure: connectionRule,
+    explanation: caution,
+    example_jp: exampleJp,
+    example_vi: exampleVi,
+    example_analysis: exampleAnalysis,
+    notes,
+  };
+}
+
+export async function loadGrammarItems(lessonId: string): Promise<GrammarItem[]> {
+  if (supabase) {
+    try {
+      const { data, error } = await supabase
+        .from('grammar_items')
+        .select('*')
+        .eq('lesson_id', lessonId)
+        .order('sort_order', { ascending: true });
+      if (!error && data && data.length > 0) return data.map(mapGrammarItemRow);
+    } catch {
+      // ignore
+    }
+
+    // Fallback: check if grammar items are stored directly inside lesson.examples
+    try {
+      const { data: lData, error: lError } = await supabase
+        .from('lessons')
+        .select('examples')
+        .eq('id', lessonId)
+        .maybeSingle();
+      if (!lError && lData?.examples && Array.isArray(lData.examples) && lData.examples.length > 0) {
+        const first = lData.examples[0] as Record<string, unknown>;
+        if (first && (first.grammarPattern || first.meaning || first.itemCode || first.itemId)) {
+          return lData.examples.map((rawItem: unknown, idx: number) => {
+            const item = (rawItem && typeof rawItem === 'object' ? rawItem : {}) as Record<string, unknown>;
+            const exArr = Array.isArray(item.examples) ? (item.examples as Record<string, unknown>[]) : [];
+            const ex0 = exArr[0] && typeof exArr[0] === 'object' ? exArr[0] : null;
+            return {
+              id: (item.id as string) || `gi-${lessonId}-${idx + 1}`,
+              lessonId: (item.lessonId as string) || lessonId,
+              itemCode: (item.itemCode as string) || (item.itemId as string) || `N2-${String(idx + 1).padStart(3, '0')}`,
+              itemId: (item.itemId as string) || (item.itemCode as string) || `N2-${String(idx + 1).padStart(3, '0')}`,
+              grammarPattern: (item.grammarPattern as string) || (item.title as string) || '',
+              source: (item.source as string) || '',
+              meaning: (item.meaning as string) || '',
+              connectionRule: (item.connectionRule as string) || (item.structure as string) || '',
+              caution: (item.caution as string) || (item.explanation as string) || '',
+              distinction: (item.distinction as string) || '',
+              examples: Array.isArray(item.examples) ? (item.examples as GrammarItem['examples']) : [],
+              exercises: Array.isArray(item.exercises) ? (item.exercises as GrammarItem['exercises']) : [],
+              answers: Array.isArray(item.answers) ? (item.answers as GrammarItem['answers']) : [],
+              jlptLevel: (item.jlptLevel as string) || 'N2',
+              tags: (item.tags as string) || '',
+              sortOrder: typeof item.sortOrder === 'number' ? item.sortOrder : idx + 1,
+              active: item.active !== false,
+              createdAt: (item.createdAt as string) || new Date().toISOString(),
+              updatedAt: (item.updatedAt as string) || new Date().toISOString(),
+              structure: (item.structure as string) || (item.connectionRule as string) || '',
+              explanation: (item.explanation as string) || (item.caution as string) || '',
+              exampleJp: (item.exampleJp as string) || (ex0 ? String(ex0.japanese ?? '') : ''),
+              exampleVi: (item.exampleVi as string) || (ex0 ? String(ex0.vietnamese ?? '') : ''),
+              exampleAnalysis: (item.exampleAnalysis as string) || (ex0 ? String(ex0.analysis ?? '') : ''),
+              notes: (item.notes as string) || (ex0 ? String(ex0.note ?? '') : ''),
+            };
+          });
+        }
+      }
+    } catch {
+      // ignore
+    }
+  }
+  const raw = localStorage.getItem(LS_GRAMMAR_ITEMS);
+  if (raw) {
+    try {
+      const all = JSON.parse(raw) as GrammarItem[];
+      const filtered = all.filter((g) => g.lessonId === lessonId).sort((a, b) => a.sortOrder - b.sortOrder);
+      if (filtered.length > 0) return filtered;
+    } catch {
+      // ignore
+    }
+  }
+  return [];
+}
+
+export async function loadAllGrammarItems(): Promise<GrammarItem[]> {
+  if (supabase) {
+    try {
+      const { data, error } = await supabase
+        .from('grammar_items')
+        .select('*')
+        .order('sort_order', { ascending: true });
+      if (!error && data) return data.map(mapGrammarItemRow);
+    } catch {
+      // ignore
+    }
+  }
+  const raw = localStorage.getItem(LS_GRAMMAR_ITEMS);
+  return raw ? (JSON.parse(raw) as GrammarItem[]) : [];
+}
+
+export async function upsertGrammarItems(items: GrammarItem[]): Promise<void> {
+  const raw = localStorage.getItem(LS_GRAMMAR_ITEMS);
+  const current = raw ? (JSON.parse(raw) as GrammarItem[]) : [];
+  const map = new Map(current.map((g) => [g.id, g]));
+  items.forEach((g) => map.set(g.id, g));
+  localStorage.setItem(LS_GRAMMAR_ITEMS, JSON.stringify(Array.from(map.values())));
+  dispatchDataChange('grammar_items');
+
+  if (supabase) {
+    try {
+      const rows = items.map(grammarItemToRow);
+      await supabase.from('grammar_items').upsert(rows, { onConflict: 'id' });
+    } catch (err) {
+      console.warn('Supabase upsertGrammarItems note:', err);
+    }
+    // Also save in lesson.examples to guarantee Supabase persistence even without grammar_items table
+    try {
+      const grouped = new Map<string, GrammarItem[]>();
+      for (const item of items) {
+        if (!grouped.has(item.lessonId)) {
+          grouped.set(item.lessonId, []);
+        }
+        grouped.get(item.lessonId)!.push(item);
+      }
+      for (const [lId, lItems] of grouped.entries()) {
+        await supabase.from('lessons').update({ examples: lItems }).eq('id', lId);
+      }
+    } catch (err) {
+      console.warn('Supabase update lesson examples note:', err);
+    }
+  }
+}
+
+export async function deleteGrammarItemsByLesson(lessonId: string): Promise<void> {
+  const raw = localStorage.getItem(LS_GRAMMAR_ITEMS);
+  const current = raw ? (JSON.parse(raw) as GrammarItem[]) : [];
+  localStorage.setItem(LS_GRAMMAR_ITEMS, JSON.stringify(current.filter((g) => g.lessonId !== lessonId)));
+  dispatchDataChange('grammar_items');
+
+  if (supabase) {
+    try {
+      await supabase.from('grammar_items').delete().eq('lesson_id', lessonId);
+    } catch (err) {
+      console.warn('Supabase deleteGrammarItemsByLesson note:', err);
+    }
+    try {
+      await supabase.from('lessons').update({ examples: [] }).eq('id', lessonId);
+    } catch (err) {
+      console.warn('Supabase clear lesson examples note:', err);
+    }
+  }
+}
+
+export async function updateGrammarItem(id: string, updates: Partial<GrammarItem>): Promise<void> {
+  const raw = localStorage.getItem(LS_GRAMMAR_ITEMS);
+  const current = raw ? (JSON.parse(raw) as GrammarItem[]) : [];
+  const next = current.map((g) => (g.id === id ? { ...g, ...updates } : g));
+  localStorage.setItem(LS_GRAMMAR_ITEMS, JSON.stringify(next));
+  dispatchDataChange('grammar_items');
+
+  if (supabase) {
+    try {
+      const row: Record<string, unknown> = {};
+      if (updates.grammarPattern !== undefined) row.grammar_pattern = updates.grammarPattern;
+      if (updates.meaning !== undefined) row.meaning = updates.meaning;
+      if (updates.structure !== undefined) row.structure = updates.structure;
+      if (updates.explanation !== undefined) row.explanation = updates.explanation;
+      if (updates.distinction !== undefined) row.distinction = updates.distinction;
+      if (updates.exampleJp !== undefined) row.example_jp = updates.exampleJp;
+      if (updates.exampleVi !== undefined) row.example_vi = updates.exampleVi;
+      if (updates.exampleAnalysis !== undefined) row.example_analysis = updates.exampleAnalysis;
+      if (updates.notes !== undefined) row.notes = updates.notes;
+      if (updates.jlptLevel !== undefined) row.jlpt_level = updates.jlptLevel;
+      if (updates.tags !== undefined) row.tags = updates.tags;
+      if (updates.sortOrder !== undefined) row.sort_order = updates.sortOrder;
+      if (updates.active !== undefined) row.active = updates.active;
+      await supabase.from('grammar_items').update(row).eq('id', id);
+    } catch (err) {
+      console.warn('Supabase updateGrammarItem note:', err);
+    }
+  }
 }
 
 // ─── Vocab Progress (localStorage, per user+lesson+item) ────────
@@ -1148,6 +1833,64 @@ export function getVocabProgressEntry(
   }
 }
 
+// ─── Grammar Progress (localStorage, per user+lesson) ────────────
+
+const LS_GRAMMAR_PROGRESS = 'quizforms_grammar_progress';
+
+type GrammarProgressMap = Record<string, GrammarProgress>;
+
+function getGrammarProgressKey(userId: string, lessonId: string): string {
+  return `${userId}::${lessonId}`;
+}
+
+export function loadGrammarProgress(userId: string): Record<string, GrammarProgress> {
+  try {
+    const raw = localStorage.getItem(LS_GRAMMAR_PROGRESS);
+    if (!raw) return {};
+    const all = JSON.parse(raw) as GrammarProgressMap;
+    const result: Record<string, GrammarProgress> = {};
+    const prefix = `${userId}::`;
+    for (const [key, val] of Object.entries(all)) {
+      if (key.startsWith(prefix)) {
+        const lessonId = key.slice(prefix.length);
+        result[lessonId] = val;
+      }
+    }
+    return result;
+  } catch {
+    return {};
+  }
+}
+
+export function saveGrammarProgress(
+  userId: string,
+  lessonId: string,
+  progress: GrammarProgress
+): void {
+  try {
+    const raw = localStorage.getItem(LS_GRAMMAR_PROGRESS);
+    const all = raw ? JSON.parse(raw) as GrammarProgressMap : {};
+    all[getGrammarProgressKey(userId, lessonId)] = progress;
+    localStorage.setItem(LS_GRAMMAR_PROGRESS, JSON.stringify(all));
+  } catch {
+    // ignore storage errors
+  }
+}
+
+export function getGrammarProgressEntry(
+  userId: string,
+  lessonId: string
+): GrammarProgress | null {
+  try {
+    const raw = localStorage.getItem(LS_GRAMMAR_PROGRESS);
+    if (!raw) return null;
+    const all = JSON.parse(raw) as GrammarProgressMap;
+    return all[getGrammarProgressKey(userId, lessonId)] ?? null;
+  } catch {
+    return null;
+  }
+}
+
 export function getMasteryStatusColor(status: MasteryStatus): string {
   switch (status) {
     case 'forgot': return 'bg-red-100 text-red-700 border-red-200';
@@ -1165,6 +1908,463 @@ export function getMasteryStatusLabel(status: MasteryStatus): string {
     case 'almost': return 'Gần nhớ';
     case 'mastered': return 'Đã nhớ';
     default: return 'Chưa học';
+  }
+}
+
+// ─── Grammar Exam Practice Questions (ExamQuestion) ───────────
+
+// ─── Reading Exam Passages ─────────────────────────────────────
+
+export const LS_READING_PASSAGES = 'quizforms_reading_exam_passages';
+
+function mapReadingPassageRow(r: Record<string, unknown>): ReadingExamPassage {
+  return {
+    id: r.id as string,
+    lessonId: (r.lesson_id as string) ?? (r.lessonId as string),
+    passageKey: (r.passage_key as string) ?? (r.passageKey as string) ?? '',
+    passageTitle: (r.passage_title as string) ?? (r.passageTitle as string) ?? undefined,
+    passageJa: (r.passage_ja as string) ?? (r.passageJa as string) ?? '',
+    passageVi: (r.passage_vi as string) ?? (r.passageVi as string) ?? '',
+    sortOrder: Number((r.sort_order as number) ?? (r.sortOrder as number) ?? 0),
+    createdAt: (r.created_at as string) ?? (r.createdAt as string),
+    updatedAt: (r.updated_at as string) ?? (r.updatedAt as string),
+  };
+}
+
+function readingPassageToRow(p: ReadingExamPassage): Record<string, unknown> {
+  return {
+    id: p.id,
+    lesson_id: p.lessonId,
+    passage_key: p.passageKey,
+    passage_title: p.passageTitle || null,
+    passage_ja: p.passageJa,
+    passage_vi: p.passageVi,
+    sort_order: p.sortOrder,
+  };
+}
+
+export async function loadReadingPassages(lessonId?: string): Promise<ReadingExamPassage[]> {
+  if (supabase) {
+    try {
+      let query = supabase.from('reading_exam_passages').select('*').order('sort_order', { ascending: true });
+      if (lessonId) {
+        query = query.eq('lesson_id', lessonId);
+      }
+      const { data, error } = await query;
+      if (!error && data && data.length > 0) {
+        return data.map(mapReadingPassageRow);
+      }
+    } catch {
+      // fallback to lessons.notes / localStorage
+    }
+
+    // Fallback: check lessons.notes for readingPassages
+    if (lessonId) {
+      try {
+        const { data: lessonRow, error: lErr } = await supabase
+          .from('lessons')
+          .select('notes')
+          .eq('id', lessonId)
+          .maybeSingle();
+        if (!lErr && lessonRow?.notes) {
+          const parsedNotes = JSON.parse(lessonRow.notes);
+          if (Array.isArray(parsedNotes.readingPassages) && parsedNotes.readingPassages.length > 0) {
+            return parsedNotes.readingPassages;
+          }
+        }
+      } catch {
+        // ignore
+      }
+    }
+  }
+  const raw = localStorage.getItem(LS_READING_PASSAGES);
+  if (raw) {
+    try {
+      const all = JSON.parse(raw) as ReadingExamPassage[];
+      let localPassages = all;
+      if (lessonId) {
+        localPassages = all.filter((p) => p.lessonId === lessonId).sort((a, b) => a.sortOrder - b.sortOrder);
+      } else {
+        localPassages = all.sort((a, b) => a.sortOrder - b.sortOrder);
+      }
+
+      // Auto-sync local passages to Supabase lessons.notes if missing remotely
+      if (localPassages.length > 0 && lessonId && supabase) {
+        (async () => {
+          try {
+            const { data: lessonRow } = await supabase
+              .from('lessons')
+              .select('notes')
+              .eq('id', lessonId)
+              .maybeSingle();
+            let currentNotesObj: Record<string, unknown> = {};
+            if (lessonRow?.notes) {
+              try { currentNotesObj = JSON.parse(lessonRow.notes); } catch { /* ignore */ }
+            }
+            if (!currentNotesObj.readingPassages || !Array.isArray(currentNotesObj.readingPassages) || currentNotesObj.readingPassages.length === 0) {
+              currentNotesObj.readingPassages = localPassages;
+              await supabase
+                .from('lessons')
+                .update({ notes: JSON.stringify(currentNotesObj) })
+                .eq('id', lessonId);
+            }
+          } catch {
+            // ignore
+          }
+        })();
+      }
+
+      return localPassages;
+    } catch {
+      // ignore
+    }
+  }
+  return [];
+}
+
+export async function upsertReadingPassages(passages: ReadingExamPassage[]): Promise<void> {
+  const raw = localStorage.getItem(LS_READING_PASSAGES);
+  const current = raw ? (JSON.parse(raw) as ReadingExamPassage[]) : [];
+  const map = new Map(current.map((p) => [p.id, p]));
+  passages.forEach((p) => map.set(p.id, p));
+  localStorage.setItem(LS_READING_PASSAGES, JSON.stringify(Array.from(map.values())));
+  dispatchDataChange('reading_exam_passages');
+
+  if (supabase) {
+    try {
+      const rows = passages.map(readingPassageToRow);
+      await supabase.from('reading_exam_passages').upsert(rows, { onConflict: 'id' });
+    } catch (err) {
+      console.warn('Supabase upsertReadingPassages note:', err);
+    }
+
+    // Also persist passages inside lessons.notes so that devices without reading_exam_passages table can access them
+    const lessonIds = Array.from(new Set(passages.map((p) => p.lessonId).filter(Boolean)));
+    for (const lid of lessonIds) {
+      try {
+        const pList = passages.filter((p) => p.lessonId === lid);
+        const { data: lessonRow } = await supabase.from('lessons').select('notes').eq('id', lid).maybeSingle();
+        let notesObj: Record<string, unknown> = {};
+        if (lessonRow?.notes) {
+          try { notesObj = JSON.parse(lessonRow.notes); } catch { /* ignore */ }
+        }
+        notesObj.readingPassages = pList;
+        await supabase.from('lessons').update({ notes: JSON.stringify(notesObj) }).eq('id', lid);
+      } catch (lErr) {
+        console.warn('Supabase update lessons.notes with passages notice:', lErr);
+      }
+    }
+  }
+}
+
+export async function deleteReadingPassagesByLesson(lessonId: string): Promise<void> {
+  const raw = localStorage.getItem(LS_READING_PASSAGES);
+  const current = raw ? (JSON.parse(raw) as ReadingExamPassage[]) : [];
+  localStorage.setItem(LS_READING_PASSAGES, JSON.stringify(current.filter((p) => p.lessonId !== lessonId)));
+  dispatchDataChange('reading_exam_passages');
+
+  if (supabase) {
+    try {
+      await supabase.from('reading_exam_passages').delete().eq('lesson_id', lessonId);
+    } catch (err) {
+      console.warn('Supabase deleteReadingPassagesByLesson note:', err);
+    }
+  }
+}
+
+export const LS_EXAM_QUESTIONS = 'quizforms_exam_questions';
+export const LS_EXAM_QUESTION_PROGRESS = 'quizforms_exam_question_progress';
+
+function mapExamQuestionRow(r: Record<string, unknown>): ExamQuestion {
+  let optionDetails: VocabExamOptionDetails | undefined = undefined;
+  let passageId = (r.passage_id as string) ?? (r.passageId as string) ?? undefined;
+  let topic = (r.topic as string) ?? undefined;
+  let kanjiVocabulary = (r.kanji_vocabulary as string) ?? (r.kanjiVocabulary as string) ?? undefined;
+  let grammarStructures = (r.grammar_structures as string) ?? (r.grammarStructures as string) ?? undefined;
+
+  if (r.option_details && typeof r.option_details === 'object') {
+    optionDetails = r.option_details as VocabExamOptionDetails;
+  } else if (r.optionDetails && typeof r.optionDetails === 'object') {
+    optionDetails = r.optionDetails as VocabExamOptionDetails;
+  }
+
+  const packedRaw = (typeof r.vocabulary_han_viet === 'string' && r.vocabulary_han_viet.startsWith('{'))
+    ? r.vocabulary_han_viet
+    : (typeof r.vocabularyHanViet === 'string' && r.vocabularyHanViet.startsWith('{'))
+    ? r.vocabularyHanViet
+    : null;
+
+  if (packedRaw) {
+    try {
+      const parsed = JSON.parse(packedRaw) as Record<string, unknown>;
+      if (parsed.optionDetails) optionDetails = parsed.optionDetails as VocabExamOptionDetails;
+      else if (parsed.A && parsed.B) optionDetails = parsed as unknown as VocabExamOptionDetails;
+      if (parsed.passageId && !passageId) passageId = parsed.passageId as string;
+      if (parsed.topic && !topic) topic = parsed.topic as string;
+      if (parsed.kanjiVocabulary && !kanjiVocabulary) kanjiVocabulary = parsed.kanjiVocabulary as string;
+      if (parsed.grammarStructures && !grammarStructures) grammarStructures = parsed.grammarStructures as string;
+    } catch {
+      // ignore
+    }
+  }
+
+  const rawCorrect = (r.correct_answer as string | null) ?? (r.correctAnswer as string | null);
+  const correctAnswer = (rawCorrect === 'A' || rawCorrect === 'B' || rawCorrect === 'C' || rawCorrect === 'D') ? rawCorrect : null;
+
+  return {
+    id: r.id as string,
+    lessonId: (r.lesson_id as string) ?? (r.lessonId as string),
+    questionNo: Number((r.question_no as number) ?? (r.questionNo as number) ?? 0),
+    questionType: ((r.question_type as ExamQuestionType) ?? (r.questionType as ExamQuestionType) ?? 'multiple_choice'),
+    questionText: (r.question_text as string) ?? (r.questionText as string) ?? '',
+    optionA: (r.option_a as string) ?? (r.optionA as string) ?? '',
+    optionB: (r.option_b as string) ?? (r.optionB as string) ?? '',
+    optionC: (r.option_c as string) ?? (r.optionC as string) ?? '',
+    optionD: (r.option_d as string) ?? (r.optionD as string) ?? '',
+    correctAnswer,
+    timeSeconds: Number((r.time_seconds as number) ?? (r.timeSeconds as number) ?? 30),
+    answerExplanation: (r.answer_explanation as string) ?? (r.answerExplanation as string) ?? '',
+    vocabularyHanViet: (r.vocabulary_han_viet as string) ?? (r.vocabularyHanViet as string) ?? '',
+    optionDetails,
+    passageId,
+    topic,
+    kanjiVocabulary,
+    grammarStructures,
+    sortOrder: Number((r.sort_order as number) ?? (r.sortOrder as number) ?? 0),
+    active: r.active !== undefined ? Boolean(r.active) : true,
+    createdAt: (r.created_at as string) ?? (r.createdAt as string),
+    updatedAt: (r.updated_at as string) ?? (r.updatedAt as string),
+  };
+}
+
+function examQuestionToRow(q: ExamQuestion): Record<string, unknown> {
+  const packedMeta: Record<string, unknown> = {};
+  if (q.optionDetails) packedMeta.optionDetails = q.optionDetails;
+  if (q.passageId) packedMeta.passageId = q.passageId;
+  if (q.topic) packedMeta.topic = q.topic;
+  if (q.kanjiVocabulary) packedMeta.kanjiVocabulary = q.kanjiVocabulary;
+  if (q.grammarStructures) packedMeta.grammarStructures = q.grammarStructures;
+
+  let vocabHanVietStr: string = '';
+  if (Object.keys(packedMeta).length > 0) {
+    vocabHanVietStr = JSON.stringify(packedMeta);
+  } else if (q.vocabularyHanViet) {
+    vocabHanVietStr = q.vocabularyHanViet;
+  }
+
+  return {
+    id: q.id,
+    lesson_id: q.lessonId,
+    question_no: q.questionNo,
+    question_type: q.questionType,
+    question_text: q.questionText,
+    option_a: q.optionA,
+    option_b: q.optionB,
+    option_c: q.optionC,
+    option_d: q.optionD,
+    correct_answer: q.correctAnswer,
+    time_seconds: q.timeSeconds,
+    answer_explanation: q.answerExplanation,
+    vocabulary_han_viet: vocabHanVietStr || '',
+    sort_order: q.sortOrder,
+    active: q.active,
+  };
+}
+
+export async function loadExamQuestions(lessonId?: string): Promise<ExamQuestion[]> {
+  let supabaseQuestions: ExamQuestion[] = [];
+  let supabaseSuccess = false;
+
+  if (supabase) {
+    try {
+      let query = supabase.from('exam_questions').select('*').order('sort_order', { ascending: true });
+      if (lessonId) {
+        query = query.eq('lesson_id', lessonId);
+      }
+      const { data, error } = await query;
+      if (!error && data) {
+        supabaseSuccess = true;
+        if (data.length > 0) {
+          supabaseQuestions = data.map(mapExamQuestionRow);
+          return supabaseQuestions;
+        }
+      }
+    } catch {
+      // fallback to localStorage
+    }
+  }
+
+  const raw = localStorage.getItem(LS_EXAM_QUESTIONS);
+  if (raw) {
+    try {
+      const all = JSON.parse(raw) as ExamQuestion[];
+      let localQuestions = all;
+      if (lessonId) {
+        localQuestions = all.filter((q) => q.lessonId === lessonId).sort((a, b) => a.sortOrder - b.sortOrder);
+      } else {
+        localQuestions = all.sort((a, b) => a.sortOrder - b.sortOrder);
+      }
+
+      // Auto-sync: if local questions exist but Supabase has 0 rows, sync them up so other devices (mobile) can see them!
+      if (localQuestions.length > 0 && supabase && (supabaseSuccess || supabaseQuestions.length === 0)) {
+        const rows = localQuestions.map(examQuestionToRow);
+        (async () => {
+          try {
+            const { error } = await supabase.from('exam_questions').upsert(rows, { onConflict: 'id' });
+            if (error) console.warn('Auto-sync exam questions note:', error);
+          } catch {
+            // ignore
+          }
+        })();
+      }
+
+      return localQuestions;
+    } catch {
+      // ignore
+    }
+  }
+  return [];
+}
+
+export async function upsertExamQuestions(questions: ExamQuestion[]): Promise<void> {
+  const raw = localStorage.getItem(LS_EXAM_QUESTIONS);
+  const current = raw ? (JSON.parse(raw) as ExamQuestion[]) : [];
+  const map = new Map(current.map((q) => [q.id, q]));
+  questions.forEach((q) => map.set(q.id, q));
+  localStorage.setItem(LS_EXAM_QUESTIONS, JSON.stringify(Array.from(map.values())));
+  dispatchDataChange('exam_questions');
+
+  if (supabase) {
+    try {
+      const rows = questions.map(examQuestionToRow);
+      const { error } = await supabase.from('exam_questions').upsert(rows, { onConflict: 'id' });
+      if (error) {
+        console.warn('Supabase upsertExamQuestions error:', error);
+      }
+    } catch (err) {
+      console.warn('Supabase upsertExamQuestions note:', err);
+    }
+  }
+}
+
+export async function deleteExamQuestionsByLesson(lessonId: string): Promise<void> {
+  const raw = localStorage.getItem(LS_EXAM_QUESTIONS);
+  const current = raw ? (JSON.parse(raw) as ExamQuestion[]) : [];
+  localStorage.setItem(LS_EXAM_QUESTIONS, JSON.stringify(current.filter((q) => q.lessonId !== lessonId)));
+  dispatchDataChange('exam_questions');
+
+  if (supabase) {
+    try {
+      await supabase.from('exam_questions').delete().eq('lesson_id', lessonId);
+    } catch (err) {
+      console.warn('Supabase deleteExamQuestionsByLesson note:', err);
+    }
+  }
+}
+
+export async function loadExamQuestionProgress(
+  userId: string,
+  lessonId: string
+): Promise<Record<string, ExamQuestionProgress>> {
+  if (supabase) {
+    try {
+      const { data, error } = await supabase
+        .from('exam_question_progress')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('lesson_id', lessonId);
+      if (!error && data && data.length > 0) {
+        const result: Record<string, ExamQuestionProgress> = {};
+        for (const r of data) {
+          result[r.question_id] = {
+            userId: r.user_id,
+            lessonId: r.lesson_id,
+            questionId: r.question_id,
+            selectedOption: r.selected_option,
+            isCorrect: Boolean(r.is_correct),
+            timeSpent: Number(r.time_spent || 0),
+            completedAt: r.completed_at,
+          };
+        }
+        return result;
+      }
+    } catch {
+      // fallback
+    }
+  }
+  try {
+    const raw = localStorage.getItem(LS_EXAM_QUESTION_PROGRESS);
+    if (!raw) return {};
+    const all = JSON.parse(raw) as Record<string, ExamQuestionProgress>;
+    const prefix = `${userId}::${lessonId}::`;
+    const result: Record<string, ExamQuestionProgress> = {};
+    for (const [key, val] of Object.entries(all)) {
+      if (key.startsWith(prefix)) {
+        result[val.questionId] = val;
+      }
+    }
+    return result;
+  } catch {
+    return {};
+  }
+}
+
+export async function saveExamQuestionProgress(progress: ExamQuestionProgress): Promise<void> {
+  const key = `${progress.userId}::${progress.lessonId}::${progress.questionId}`;
+  try {
+    const raw = localStorage.getItem(LS_EXAM_QUESTION_PROGRESS);
+    const all = raw ? (JSON.parse(raw) as Record<string, ExamQuestionProgress>) : {};
+    all[key] = progress;
+    localStorage.setItem(LS_EXAM_QUESTION_PROGRESS, JSON.stringify(all));
+  } catch {
+    // ignore
+  }
+
+  if (supabase) {
+    try {
+      await supabase.from('exam_question_progress').upsert({
+        user_id: progress.userId,
+        lesson_id: progress.lessonId,
+        question_id: progress.questionId,
+        selected_option: progress.selectedOption,
+        is_correct: progress.isCorrect,
+        time_spent: progress.timeSpent,
+        completed_at: progress.completedAt || new Date().toISOString(),
+      }, { onConflict: 'user_id,question_id' });
+    } catch (err) {
+      console.warn('Supabase saveExamQuestionProgress note:', err);
+    }
+  }
+}
+
+export async function resetExamQuestionProgress(userId: string, lessonId: string): Promise<void> {
+  try {
+    const raw = localStorage.getItem(LS_EXAM_QUESTION_PROGRESS);
+    if (raw) {
+      const all = JSON.parse(raw) as Record<string, ExamQuestionProgress>;
+      const prefix = `${userId}::${lessonId}::`;
+      const next: Record<string, ExamQuestionProgress> = {};
+      for (const [k, v] of Object.entries(all)) {
+        if (!k.startsWith(prefix)) {
+          next[k] = v;
+        }
+      }
+      localStorage.setItem(LS_EXAM_QUESTION_PROGRESS, JSON.stringify(next));
+    }
+  } catch {
+    // ignore
+  }
+
+  if (supabase) {
+    try {
+      await supabase
+        .from('exam_question_progress')
+        .delete()
+        .eq('user_id', userId)
+        .eq('lesson_id', lessonId);
+    } catch (err) {
+      console.warn('Supabase resetExamQuestionProgress note:', err);
+    }
   }
 }
 
@@ -1221,6 +2421,7 @@ function mapListeningLessonRow(r: Record<string, unknown>): ListeningLesson {
     teacherName: (r.teacher_name as string) ?? '',
     classScope: (r.class_scope as string[]) ?? [],
     status: (r.status as ListeningLesson['status']) ?? 'DRAFT',
+    folderId: (r.folder_id as string | null) ?? null,
     sortOrder: (r.sort_order as number) ?? 0,
     createdAt: (r.created_at as string) ?? new Date().toISOString(),
   };
@@ -1242,6 +2443,7 @@ function listeningLessonToRow(l: ListeningLesson) {
     teacher_name: l.teacherName,
     class_scope: l.classScope,
     status: l.status,
+    folder_id: l.folderId ?? null,
     sort_order: l.sortOrder,
     created_at: l.createdAt,
   };
@@ -1339,6 +2541,7 @@ export async function updateListeningLesson(id: string, updates: Partial<Listeni
     if (updates.teacherName !== undefined) row.teacher_name = updates.teacherName;
     if (updates.classScope !== undefined) row.class_scope = updates.classScope;
     if (updates.status !== undefined) row.status = updates.status;
+    if (updates.folderId !== undefined) row.folder_id = updates.folderId;
     if (updates.sortOrder !== undefined) row.sort_order = updates.sortOrder;
     await supabase.from('listening_lessons').update(row).eq('id', id);
     return;
@@ -1596,6 +2799,7 @@ function mapReadingLessonRow(r: Record<string, unknown>): ReadingLesson {
     estimatedMinutes: (r.estimated_minutes as number) ?? 5,
     displayOrder: (r.display_order as number) ?? 0,
     status: (r.status as ReadingLesson['status']) ?? 'draft',
+    folderId: (r.folder_id as string | null) ?? null,
     createdAt: (r.created_at as string) ?? new Date().toISOString(),
   };
 }
@@ -1615,6 +2819,7 @@ function readingLessonToRow(l: ReadingLesson) {
     estimated_minutes: l.estimatedMinutes,
     display_order: l.displayOrder,
     status: l.status,
+    folder_id: l.folderId ?? null,
     created_at: l.createdAt,
   };
 }
@@ -1656,6 +2861,7 @@ export async function updateReadingLesson(id: string, updates: Partial<ReadingLe
     if (updates.estimatedMinutes !== undefined) row.estimated_minutes = updates.estimatedMinutes;
     if (updates.displayOrder !== undefined) row.display_order = updates.displayOrder;
     if (updates.status !== undefined) row.status = updates.status;
+    if (updates.folderId !== undefined) row.folder_id = updates.folderId;
     await supabase.from('reading_lessons').update(row).eq('id', id);
     return;
   }
@@ -2269,6 +3475,7 @@ export async function updatePractice(id: string, updates: Partial<Practice>): Pr
     if (updates.classSchedules !== undefined) row.class_schedules = updates.classSchedules;
     if (updates.allowAiTutor !== undefined) row.allow_ai_tutor = updates.allowAiTutor;
     if (updates.status !== undefined) row.status = updates.status;
+    if (updates.folderId !== undefined) row.folder_id = updates.folderId;
     if (updates.sortOrder !== undefined) row.sort_order = updates.sortOrder;
     if (updates.folderId !== undefined) row.folder_id = updates.folderId;
     if (updates.archivedAt !== undefined) row.archived_at = updates.archivedAt;
@@ -2571,9 +3778,23 @@ export function getEffectivePracticeSchedule(
   return { startAt: practice.startAt, deadline: practice.deadline };
 }
 
-export function practiceVisibleForUser(practice: Practice, user: User): boolean {
+export function practiceVisibleForUser(
+  practice: Practice,
+  user: User,
+  effectiveFolderAccessMap?: Map<string, { canView: boolean; canManage: boolean; canEdit: boolean }>
+): boolean {
   if (user.role === 'admin' || user.role === 'teacher') return true;
   if (practice.status !== 'PUBLISHED') return false;
+
+  // 1. Folder ACL check
+  if (effectiveFolderAccessMap && practice.folderId) {
+    const access = effectiveFolderAccessMap.get(practice.folderId);
+    if (access !== undefined) {
+      return access.canView;
+    }
+  }
+
+  // 2. Legacy fallback
   const tc = practice.targetClasses;
   if (!tc || tc.length === 0 || tc.includes('Tất cả')) return true;
   return tc.some((cls) => user.assignedClasses.includes(cls));

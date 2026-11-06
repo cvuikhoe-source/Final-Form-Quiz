@@ -602,7 +602,7 @@ function PracticeCard({
       <button onClick={onOpen} className="block w-full text-left">
         <h3 className="mb-2 truncate text-sm font-semibold text-slate-800">{practice.title}</h3>
         <p className="text-xs text-slate-400">
-          {questionCount} câu hỏi • {practice.targetClasses.length === 0 || practice.targetClasses.includes('Tất cả') ? 'Tất cả các lớp' : `${practice.targetClasses.length} lớp`}
+          {questionCount} câu hỏi • {practice.folderId ? '📁 Thư mục' : 'Trang chủ'}
           {practice.archivedAt ? ' • Đã lưu trữ' : ''}
         </p>
       </button>

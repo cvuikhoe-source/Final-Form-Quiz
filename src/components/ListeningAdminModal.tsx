@@ -11,11 +11,12 @@ import type {
 import { AudioPlayer, getDriveFileId } from '@/components/AudioPlayer';
 import {
   generateId, getListeningAudioUrl, getListeningQuestionsAdmin,
-  loadClasses, uploadListeningAudio, upsertListeningLessons, upsertListeningQuestions,
+  uploadListeningAudio, upsertListeningLessons, upsertListeningQuestions,
 } from '@/storage';
 
 interface ListeningAdminModalProps {
   lesson: ListeningLesson | null;
+  targetFolderId?: string | null;
   onClose: () => void;
   onSaved: () => void;
 }
@@ -56,7 +57,7 @@ function parseTs(v: string): number | null {
   return isFinite(n) && n >= 0 ? Math.round(n) : null;
 }
 
-export function ListeningAdminModal({ lesson, onClose, onSaved }: ListeningAdminModalProps) {
+export function ListeningAdminModal({ lesson, targetFolderId, onClose, onSaved }: ListeningAdminModalProps) {
   const isNew = lesson === null;
   const [title, setTitle] = useState(lesson?.title ?? '');
   const [subtitle, setSubtitle] = useState(lesson?.subtitle ?? '');
@@ -69,10 +70,9 @@ export function ListeningAdminModal({ lesson, onClose, onSaved }: ListeningAdmin
   const [durationSeconds, setDurationSeconds] = useState(lesson?.durationSeconds ?? 0);
   const [transcript, setTranscript] = useState(lesson?.transcript ?? '');
   const [teacherName, setTeacherName] = useState(lesson?.teacherName ?? '');
-  const [classScope, setClassScope] = useState<string[]>(lesson?.classScope ?? []);
+  const [classScope] = useState<string[]>(lesson?.classScope ?? []);
   const [status, setStatus] = useState<ListeningStatus>(lesson?.status ?? 'DRAFT');
 
-  const [classes, setClasses] = useState<string[]>([]);
   const [questions, setQuestions] = useState<ListeningQuestionFull[]>([]);
   const [uploading, setUploading] = useState(false);
   const [uploadPct, setUploadPct] = useState(0);
@@ -84,10 +84,6 @@ export function ListeningAdminModal({ lesson, onClose, onSaved }: ListeningAdmin
   const fileRef = useRef<HTMLInputElement | null>(null);
   const excelRef = useRef<HTMLInputElement | null>(null);
   const lessonId = lesson?.id ?? generateId('listen');
-
-  useEffect(() => {
-    loadClasses().then(setClasses);
-  }, []);
 
   useEffect(() => {
     if (!isNew && lesson) {
@@ -221,6 +217,7 @@ export function ListeningAdminModal({ lesson, onClose, onSaved }: ListeningAdmin
         classScope: getStr(r.data, 'class_scope') ? getStr(r.data, 'class_scope').split(';').map((s) => s.trim()).filter(Boolean) : [],
         status: getStr(r.data, 'status').toUpperCase() as ListeningStatus,
         sortOrder: parseTs(getStr(r.data, 'sort_order')) ?? validLessonRows.indexOf(r) + 1,
+        folderId: targetFolderId ?? null,
         createdAt: new Date().toISOString(),
       }));
       const qs: ListeningQuestionFull[] = validQuestionRows.map((r) => ({
@@ -256,7 +253,7 @@ export function ListeningAdminModal({ lesson, onClose, onSaved }: ListeningAdmin
     } finally {
       setSaving(false);
     }
-  }, [parsed, saving, validLessonRows, validQuestionRows, onSaved, onClose]);
+  }, [parsed, saving, validLessonRows, validQuestionRows, targetFolderId, onSaved, onClose]);
 
   const downloadTemplate = useCallback(() => {
     const lessonRows = [{
@@ -340,10 +337,6 @@ export function ListeningAdminModal({ lesson, onClose, onSaved }: ListeningAdmin
     setQuestions((prev) => prev.filter((_, i) => i !== idx).map((q, i) => ({ ...q, questionNo: i + 1 })));
   };
 
-  const toggleClass = (cls: string) => {
-    setClassScope((prev) => (prev.includes(cls) ? prev.filter((c) => c !== cls) : [...prev, cls]));
-  };
-
   const handleSave = useCallback(async () => {
     if (saving) return;
     if (!title.trim()) { setSaveError('Vui lòng nhập tiêu đề.'); return; }
@@ -369,6 +362,7 @@ export function ListeningAdminModal({ lesson, onClose, onSaved }: ListeningAdmin
         classScope,
         status,
         sortOrder: lesson?.sortOrder ?? 1,
+        folderId: lesson?.folderId ?? targetFolderId ?? null,
         createdAt: lesson?.createdAt ?? new Date().toISOString(),
       };
       await upsertListeningLessons([l]);
@@ -382,7 +376,7 @@ export function ListeningAdminModal({ lesson, onClose, onSaved }: ListeningAdmin
     } finally {
       setSaving(false);
     }
-  }, [title, audioSource, questions, saving, lesson, subtitle, level, category, description, sourceType, audioFileName, durationSeconds, transcript, teacherName, classScope, status, lessonId, onSaved, onClose]);
+  }, [title, audioSource, questions, saving, lesson, subtitle, level, category, description, sourceType, audioFileName, durationSeconds, transcript, teacherName, classScope, status, lessonId, targetFolderId, onSaved, onClose]);
 
   const inputCls = 'w-full rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-700 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100';
   const labelCls = 'mb-1 block text-xs font-semibold text-slate-600';
@@ -439,26 +433,6 @@ export function ListeningAdminModal({ lesson, onClose, onSaved }: ListeningAdmin
           <div>
             <label className={labelCls}>Giáo viên</label>
             <input value={teacherName} onChange={(e) => setTeacherName(e.target.value)} className={inputCls} />
-          </div>
-          <div>
-            <label className={labelCls}>Lớp áp dụng</label>
-            <div className="flex flex-wrap gap-1.5">
-              <button
-                onClick={() => setClassScope([])}
-                className={`rounded-lg px-2.5 py-1.5 text-[11px] font-medium transition-all ${classScope.length === 0 ? 'bg-blue-600 text-white' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'}`}
-              >
-                Tất cả
-              </button>
-              {classes.map((cls) => (
-                <button
-                  key={cls}
-                  onClick={() => toggleClass(cls)}
-                  className={`rounded-lg px-2.5 py-1.5 text-[11px] font-medium transition-all ${classScope.includes(cls) ? 'bg-blue-600 text-white' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'}`}
-                >
-                  {cls}
-                </button>
-              ))}
-            </div>
           </div>
         </div>
 

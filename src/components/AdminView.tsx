@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { Exam, ExamStatus, ExamFolder, FolderColor } from '@/types';
-import { loadSubjects, addSubject, removeSubject, loadClasses, addClass, removeClass } from '@/storage';
+import { loadSubjects, addSubject, removeSubject } from '@/storage';
 import {
   loadExamFolders, createExamFolder, updateExamFolder, deleteExamFolder, moveExamToFolder,
 } from '@/storage';
@@ -415,43 +415,16 @@ function ExamFormModal({ exam, onClose, onSave }: ExamFormModalProps) {
   );
   const [formsUrl, setFormsUrl] = useState(exam?.formsUrl ?? '');
   const [status, setStatus] = useState<ExamStatus>(exam?.status ?? 'open');
-  const [targetClasses, setTargetClasses] = useState<string[]>(exam?.targetClasses ?? []);
+  const [targetClasses] = useState<string[]>(exam?.targetClasses ?? []);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const [subjects, setSubjects] = useState<string[]>([]);
-  const [classes, setClasses] = useState<string[]>([]);
   const [subjectMode, setSubjectMode] = useState<'select' | 'input'>('select');
   const [newSubject, setNewSubject] = useState('');
-  const [newClass, setNewClass] = useState('');
-  const [showClassInput, setShowClassInput] = useState(false);
 
   useEffect(() => {
     loadSubjects().then(setSubjects);
-    loadClasses().then(setClasses);
   }, []);
-
-  const toggleClass = (cls: string) => {
-    setTargetClasses((prev) => {
-      if (cls === 'Tất cả') return ['Tất cả'];
-      const withoutAll = prev.filter((c) => c !== 'Tất cả');
-      if (withoutAll.includes(cls)) {
-        // Removing a class also removes its per-class deadline override (no stale data)
-        setClassDeadlines((cd) => {
-          const next = { ...cd };
-          delete next[cls];
-          return next;
-        });
-        const next = withoutAll.filter((c) => c !== cls);
-        return next;
-      }
-      // Adding a class pre-fills the default deadline so new classes inherit it
-      setClassDeadlines((cd) => {
-        if (cd[cls]) return cd;
-        return { ...cd, [cls]: { date: deadline || '', time: deadlineTime || '23:59' } };
-      });
-      return [...withoutAll, cls];
-    });
-  };
 
   const handleAddSubject = async () => {
     const trimmed = newSubject.trim();
@@ -469,29 +442,6 @@ function ExamFormModal({ exam, onClose, onSave }: ExamFormModalProps) {
     setSubjects(updated);
     if (subject === s && updated.length > 0) setSubject(updated[0]);
     toast(t('admin.toast.subjectRemoved', { name: s }), 'info');
-  };
-
-  const handleAddClass = async () => {
-    const trimmed = newClass.trim();
-    if (!trimmed) return;
-    const updated = await addClass(trimmed);
-    setClasses(updated);
-    setTargetClasses((prev) => prev.includes('Tất cả') ? [trimmed] : [...prev, trimmed]);
-    setNewClass('');
-    setShowClassInput(false);
-    toast(t('admin.toast.classAdded', { name: trimmed }), 'success');
-  };
-
-  const handleRemoveClass = async (cls: string) => {
-    const updated = await removeClass(cls);
-    setClasses(updated);
-    setTargetClasses((prev) => prev.filter((c) => c !== cls));
-    setClassDeadlines((cd) => {
-      const next = { ...cd };
-      delete next[cls];
-      return next;
-    });
-    toast(t('admin.toast.classRemoved', { name: cls }), 'info');
   };
 
   const composeDeadlineISO = (date: string, time: string): string | null => {
@@ -610,40 +560,6 @@ function ExamFormModal({ exam, onClose, onSave }: ExamFormModalProps) {
               </div>
               {errors.deadline && <p className="mt-1 text-xs text-red-500">{errors.deadline}</p>}
             </div>
-          </div>
-
-          <div>
-            <label className="mb-1.5 block text-sm font-medium text-slate-700">{t('admin.form.classes')}</label>
-            <p className="mb-2 text-xs text-slate-400">{t('schedule.classesHintExam')}</p>
-            <div className="flex flex-wrap gap-2">
-              <button onClick={() => toggleClass('Tất cả')}
-                className={`rounded-lg px-3 py-2 text-xs font-medium transition-all ${targetClasses.includes('Tất cả') ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
-                {t('common.allClasses')}
-              </button>
-              {classes.map((cls) => (
-                <div key={cls} className="relative group">
-                  <button onClick={() => toggleClass(cls)}
-                    className={`rounded-lg px-3 py-2 pr-7 text-xs font-medium transition-all ${targetClasses.includes(cls) ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
-                    {cls}
-                  </button>
-                  <button onClick={() => handleRemoveClass(cls)} className="absolute right-1 top-1/2 -translate-y-1/2 text-slate-400 hover:text-red-500" title={t('admin.form.removeClass')}>
-                    <XCircle size={12} />
-                  </button>
-                </div>
-              ))}
-            </div>
-            {showClassInput ? (
-              <div className="mt-2 flex gap-1.5">
-                <input type="text" value={newClass} onChange={(e) => setNewClass(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleAddClass()}
-                  placeholder={t('admin.form.classPlaceholder')} className="flex-1 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100" autoFocus />
-                <button onClick={handleAddClass} className="rounded-xl bg-blue-600 px-3 text-white hover:bg-blue-700"><Check size={18} /></button>
-                <button onClick={() => { setShowClassInput(false); setNewClass(''); }} className="rounded-xl bg-slate-100 px-3 text-slate-500 hover:bg-slate-200"><X size={18} /></button>
-              </div>
-            ) : (
-              <button onClick={() => setShowClassInput(true)} className="mt-2 flex items-center gap-1 rounded-lg border border-dashed border-blue-300 bg-blue-50/50 px-3 py-2 text-xs font-medium text-blue-600 hover:bg-blue-50">
-                <PlusCircle size={14} /> {t('admin.form.addClass')}
-              </button>
-            )}
           </div>
 
           <div>

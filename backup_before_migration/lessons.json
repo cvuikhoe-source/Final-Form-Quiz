@@ -1,0 +1,970 @@
+[
+  {
+    "id": "lesson-vocab-1793427599045-2oho0",
+    "title": "Bài học từ vựng",
+    "source": "QuizForms_Mau_Nhap_Tu_Vung.xlsx",
+    "sheet_id": "Vocabulary_Data",
+    "meaning": "Từ Vựng",
+    "connection_rule": "",
+    "notes": "",
+    "distinction": "",
+    "examples": [],
+    "exercises": [],
+    "answers": [],
+    "sort_order": 1,
+    "created_at": "2026-10-31T06:20:37.075+00:00",
+    "target_classes": [
+      "10A1"
+    ],
+    "category_id": "cat-vocab",
+    "start_at": null,
+    "deadline": null,
+    "class_schedules": {},
+    "folder_id": "lfolder-1793471799717-vocab"
+  },
+  {
+    "id": "id-1793518022859-gis7i",
+    "title": "Luyện thi Ngữ pháp JLPT N2",
+    "source": "JLPT N2",
+    "sheet_id": "",
+    "meaning": "Bài luyện thi chuyên sâu Ngữ pháp JLPT N2 gồm 20 câu hỏi chọn đáp án và sắp xếp câu sao (★).",
+    "connection_rule": "",
+    "notes": "{\"createdBy\":\"user-admin\",\"subjectId\":\"sub-1793510747937-ui3h9\",\"itemCount\":null,\"examQuestionsCount\":19,\"lessonType\":\"grammar_exam\",\"jlptLevel\":\"N2\",\"description\":\"Bài luyện thi chuyên sâu Ngữ pháp JLPT N2 gồm 20 câu hỏi chọn đáp án và sắp xếp câu sao (★).\",\"userNotes\":\"\"}",
+    "distinction": "",
+    "examples": [],
+    "exercises": [],
+    "answers": [],
+    "sort_order": 0,
+    "created_at": "2026-11-01T07:27:02.859+00:00",
+    "target_classes": [
+      "Nhật Ngữ"
+    ],
+    "category_id": "cat-grammar",
+    "start_at": null,
+    "deadline": null,
+    "class_schedules": {},
+    "folder_id": "lfolder-1793445723963-i0box"
+  },
+  {
+    "id": "lesson-grammar-1793519399940-b9isd",
+    "title": "Mau nhap ngu phap",
+    "source": "Mau_nhap_ngu_phap_QuizForms (1).xlsx",
+    "sheet_id": "Grammar_Data",
+    "meaning": "Cấu trúc ngữ pháp",
+    "connection_rule": "",
+    "notes": "{\"createdBy\":\"user-admin\",\"subjectId\":\"sub-1793510747937-ui3h9\",\"itemCount\":10,\"examQuestionsCount\":null,\"lessonType\":null,\"jlptLevel\":null,\"description\":null,\"userNotes\":\"\"}",
+    "distinction": "",
+    "examples": [
+      {
+        "id": "gitem-1793519399940-b2lpe",
+        "tags": "N2, てならない",
+        "notes": "Hiệu đính 面接れ → 面接で.",
+        "active": true,
+        "itemId": "Bai_25_02_TeNaranai",
+        "source": "ngu-phap-n2-shinkanzen 2.docx — Bài 25, mục 2",
+        "answers": [
+          {
+            "stt": 1,
+            "answer": "C: で",
+            "selfAssess": "Tự chấm: chọn đúng và giải thích được cách nối, sắc thái.",
+            "explanation": "Na-で＋ならない: rất tiếc sau khi nghe kết quả.",
+            "commonErrors": "A là dạng bổ nghĩa danh từ; B là trạng ngữ, không nối mẫu cảm xúc này.",
+            "fullSentence": "結果を聞いて、残念でならない。",
+            "self_assessment": "Tự chấm: chọn đúng và giải thích được cách nối, sắc thái.",
+            "complete_sentence": "結果を聞いて、残念でならない。",
+            "distractor_errors": "A là dạng bổ nghĩa danh từ; B là trạng ngữ, không nối mẫu cảm xúc này.",
+            "detailed_explanation": "Na-で＋ならない: rất tiếc sau khi nghe kết quả."
+          },
+          {
+            "stt": 2,
+            "answer": "子供の将来が心配でなりません。",
+            "selfAssess": "Tự chấm: đúng mẫu yêu cầu, đủ ý và diễn đạt tự nhiên.",
+            "explanation": "心配で＋なりません: cảm xúc nội tâm không nguôi. Chấp nhận 心配でならない.",
+            "commonErrors": "Không dùng 心配してはなりません: sẽ thành không được lo, trái nghĩa.",
+            "fullSentence": "子供の将来が心配でなりません。",
+            "self_assessment": "Tự chấm: đúng mẫu yêu cầu, đủ ý và diễn đạt tự nhiên.",
+            "complete_sentence": "子供の将来が心配でなりません。",
+            "distractor_errors": "Không dùng 心配してはなりません: sẽ thành không được lo, trái nghĩa.",
+            "detailed_explanation": "心配で＋なりません: cảm xúc nội tâm không nguôi. Chấp nhận 心配でならない."
+          }
+        ],
+        "caution": "Hay đi với 心配、残念、気がする、思えて…; nhấn cảm giác tự nhiên, thường nội tâm. Không thay mọi trạng thái cơ thể bằng mẫu này một cách máy móc.",
+        "meaning": "Rất… / không ngăn được cảm giác…; cảm xúc hoặc nhận định tự nhiên cứ dâng lên.",
+        "examples": [
+          {
+            "stt": 1,
+            "note": "Hiệu đính 面接れ → 面接で.",
+            "analysis": "心配（Na）＋でならない: cảm xúc lo cứ dâng; かどうか: có… hay không.",
+            "japanese": "明日の面接でうまく話せるかどうか、心配でならない。",
+            "vietnamese": "Tôi lo vô cùng không biết có nói tốt trong buổi phỏng vấn ngày mai hay không.",
+            "vocabulary": "面接（めんせつ）: phỏng vấn; 心配（しんぱい）: lo; うまく: tốt, trôi chảy.",
+            "vocabulary_furigana": "面接（めんせつ）: phỏng vấn; 心配（しんぱい）: lo; うまく: tốt, trôi chảy."
+          },
+          {
+            "stt": 2,
+            "note": "Ví dụ bổ sung tự soạn về cảm xúc của học sinh.",
+            "analysis": "寂しい→寂しくて＋なりません: cảm xúc tự nhiên mạnh; dạng lịch sự.",
+            "japanese": "卒業して友達と離れるのが寂しくてなりません。",
+            "vietnamese": "Tôi buồn vô cùng khi tốt nghiệp rồi phải xa bạn bè.",
+            "vocabulary": "卒業（そつぎょう）: tốt nghiệp; 離れる（はなれる）: xa nhau; 寂しい（さびしい）: buồn, cô đơn.",
+            "vocabulary_furigana": "卒業（そつぎょう）: tốt nghiệp; 離れる（はなれる）: xa nhau; 寂しい（さびしい）: buồn, cô đơn."
+          }
+        ],
+        "itemCode": "Bai_25_02_TeNaranai",
+        "lessonId": "lesson-grammar-1793519399940-b9isd",
+        "createdAt": "2026-11-01T07:49:10.042Z",
+        "exampleJp": "明日の面接でうまく話せるかどうか、心配でならない。",
+        "exampleVi": "Tôi lo vô cùng không biết có nói tốt trong buổi phỏng vấn ngày mai hay không.",
+        "exercises": [
+          {
+            "stt": 1,
+            "hint": "残念 là tính từ な: nối bằng で.",
+            "type": "multiple_choice",
+            "optionA": "な",
+            "optionB": "に",
+            "optionC": "で",
+            "option_a": "な",
+            "option_b": "に",
+            "option_c": "で",
+            "question": "結果を聞いて、残念（　）ならない。"
+          },
+          {
+            "stt": 2,
+            "hint": "Tương lai con: 子供の将来; lo: 心配だ.",
+            "type": "translate",
+            "question": "Dịch, dùng「てならない」: Tôi rất lo cho tương lai của con."
+          }
+        ],
+        "jlptLevel": "N2",
+        "sortOrder": 1,
+        "structure": "V-て／A-くて／Na-で ＋ ならない",
+        "updatedAt": "2026-11-01T07:49:10.042Z",
+        "distinction": "てたまらない nhấn cường độ không chịu nổi; てならない nhấn cảm xúc/suy nghĩ cứ tự phát sinh. Không nhầm てはならない = không được phép.",
+        "explanation": "Hay đi với 心配、残念、気がする、思えて…; nhấn cảm giác tự nhiên, thường nội tâm. Không thay mọi trạng thái cơ thể bằng mẫu này một cách máy móc.",
+        "connectionRule": "V-て／A-くて／Na-で ＋ ならない",
+        "grammarPattern": "～てならない",
+        "exampleAnalysis": "心配（Na）＋でならない: cảm xúc lo cứ dâng; かどうか: có… hay không."
+      },
+      {
+        "id": "gitem-1793519399940-2f95j",
+        "tags": "N2, ないではいられない, ずにはいられない",
+        "notes": "Ví dụ từ tài liệu; dịch rõ ý không kìm được.",
+        "active": true,
+        "itemId": "Bai_25_03_ZuNiwaIrarenai",
+        "source": "ngu-phap-n2-shinkanzen 2.docx — Bài 25, mục 3",
+        "answers": [
+          {
+            "stt": 1,
+            "answer": "A: 笑わ",
+            "selfAssess": "Tự chấm: chọn đúng và giải thích được cách nối, sắc thái.",
+            "explanation": "笑わずにはいられません: không nhịn cười được vì chuyện buồn cười.",
+            "commonErrors": "B là thân ます; C thể て, không đúng cách tạo ず.",
+            "fullSentence": "その話がおかしくて、笑わずにはいられません。",
+            "self_assessment": "Tự chấm: chọn đúng và giải thích được cách nối, sắc thái.",
+            "complete_sentence": "その話がおかしくて、笑わずにはいられません。",
+            "distractor_errors": "B là thân ます; C thể て, không đúng cách tạo ず.",
+            "detailed_explanation": "笑わずにはいられません: không nhịn cười được vì chuyện buồn cười."
+          },
+          {
+            "stt": 2,
+            "answer": "その話を聞いて、泣かずにはいられませんでした。",
+            "selfAssess": "Tự chấm: đúng mẫu yêu cầu, đủ ý và diễn đạt tự nhiên.",
+            "explanation": "泣かない→泣かず: cảm xúc tự nhiên khiến khóc; dạng quá khứ lịch sự.",
+            "commonErrors": "Không dùng 泣きず. Chấp nhận 泣かずにはいられない để nói phản ứng hiện tại.",
+            "fullSentence": "その話を聞いて、泣かずにはいられませんでした。",
+            "self_assessment": "Tự chấm: đúng mẫu yêu cầu, đủ ý và diễn đạt tự nhiên.",
+            "complete_sentence": "その話を聞いて、泣かずにはいられませんでした。",
+            "distractor_errors": "Không dùng 泣きず. Chấp nhận 泣かずにはいられない để nói phản ứng hiện tại.",
+            "detailed_explanation": "泣かない→泣かず: cảm xúc tự nhiên khiến khóc; dạng quá khứ lịch sự."
+          }
+        ],
+        "caution": "Thường nói phản ứng tự phát như 笑う、泣く、応援する. Nói người khác cần căn cứ, lời dẫn hoặc ngữ cảnh phù hợp, không bắt buộc mọi câu đều có ようだ.",
+        "meaning": "Không thể nhịn/không thể không…; cảm xúc tự nhiên thúc đẩy hành động khó kìm lại.",
+        "examples": [
+          {
+            "stt": 1,
+            "note": "Ví dụ từ tài liệu; dịch rõ ý không kìm được.",
+            "analysis": "動かさない＋ではいられない: phản ứng bị thúc đẩy bởi âm nhạc.",
+            "japanese": "この曲が聞こえてくると、体を動かさないではいられない。",
+            "vietnamese": "Cứ nghe bài hát này là tôi không thể kìm việc nhún nhảy theo.",
+            "vocabulary": "曲（きょく）: bài hát; 体（からだ）: cơ thể; 動かす（うごかす）: cử động.",
+            "vocabulary_furigana": "曲（きょく）: bài hát; 体（からだ）: cơ thể; 動かす（うごかす）: cử động."
+          },
+          {
+            "stt": 2,
+            "note": "Ví dụ từ tài liệu; quá khứ được thuật từ phản ứng quan sát.",
+            "analysis": "応援する→応援せずにはいられなかった; cảm xúc thúc đẩy cổ vũ.",
+            "japanese": "その選手の一生懸命な姿を見て、誰もが応援せずにはいられなかった。",
+            "vietnamese": "Thấy hình ảnh vận động viên nỗ lực hết mình, ai cũng không thể không cổ vũ.",
+            "vocabulary": "選手（せんしゅ）: vận động viên; 一生懸命（いっしょうけんめい）: hết sức; 姿（すがた）: dáng vẻ.",
+            "vocabulary_furigana": "選手（せんしゅ）: vận động viên; 一生懸命（いっしょうけんめい）: hết sức; 姿（すがた）: dáng vẻ."
+          }
+        ],
+        "itemCode": "Bai_25_03_ZuNiwaIrarenai",
+        "lessonId": "lesson-grammar-1793519399940-b9isd",
+        "createdAt": "2026-11-01T07:49:10.042Z",
+        "exampleJp": "この曲が聞こえてくると、体を動かさないではいられない。",
+        "exampleVi": "Cứ nghe bài hát này là tôi không thể kìm việc nhún nhảy theo.",
+        "exercises": [
+          {
+            "stt": 1,
+            "hint": "笑わない bỏ ない rồi thêm ず.",
+            "type": "multiple_choice",
+            "optionA": "笑わ",
+            "optionB": "笑い",
+            "optionC": "笑って",
+            "option_a": "笑わ",
+            "option_b": "笑い",
+            "option_c": "笑って",
+            "question": "その話がおかしくて、（　）ずにはいられません。"
+          },
+          {
+            "stt": 2,
+            "hint": "Nghe chuyện ấy: その話を聞く; khóc: 泣く → 泣かず.",
+            "type": "translate",
+            "question": "Dịch, dùng「ずにはいられない」: Nghe câu chuyện ấy, tôi không thể không khóc."
+          }
+        ],
+        "jlptLevel": "N2",
+        "sortOrder": 2,
+        "structure": "V-ない ＋ ではいられない；V thể ない bỏ ない ＋ ずにはいられない；する → せずにはいられない",
+        "updatedAt": "2026-11-01T07:49:10.042Z",
+        "distinction": "ずにはいられない: không kìm được; ざるを得ない: buộc phải do hoàn cảnh. Hai mẫu đều có “không thể không” nhưng động lực khác.",
+        "explanation": "Thường nói phản ứng tự phát như 笑う、泣く、応援する. Nói người khác cần căn cứ, lời dẫn hoặc ngữ cảnh phù hợp, không bắt buộc mọi câu đều có ようだ.",
+        "connectionRule": "V-ない ＋ ではいられない；V thể ない bỏ ない ＋ ずにはいられない；する → せずにはいられない",
+        "grammarPattern": "～ないではいられない・～ずにはいられない",
+        "exampleAnalysis": "動かさない＋ではいられない: phản ứng bị thúc đẩy bởi âm nhạc."
+      },
+      {
+        "id": "gitem-1793519399940-45ho0",
+        "tags": "N2, ないわけに（は）いかない",
+        "notes": "Ví dụ từ tài liệu; nhấn tình huống cụ thể.",
+        "active": true,
+        "itemId": "Bai_25_04_NaiWakeNiwaIkanai",
+        "source": "ngu-phap-n2-shinkanzen 2.docx — Bài 25, mục 4",
+        "answers": [
+          {
+            "stt": 1,
+            "answer": "B: 返さない",
+            "selfAssess": "Tự chấm: chọn đúng và giải thích được cách nối, sắc thái.",
+            "explanation": "返さない＋わけにはいきません: không thể không trả, nghĩa phải trả đúng hạn.",
+            "commonErrors": "A sẽ thành không thể trả, đảo nghĩa; C sai cách nối.",
+            "fullSentence": "借りた本は、期限までに返さないわけにはいきません。",
+            "self_assessment": "Tự chấm: chọn đúng và giải thích được cách nối, sắc thái.",
+            "complete_sentence": "借りた本は、期限までに返さないわけにはいきません。",
+            "distractor_errors": "A sẽ thành không thể trả, đảo nghĩa; C sai cách nối.",
+            "detailed_explanation": "返さない＋わけにはいきません: không thể không trả, nghĩa phải trả đúng hạn."
+          },
+          {
+            "stt": 2,
+            "answer": "仕事を引き受けたので、最後までやらないわけにはいきません。",
+            "selfAssess": "Tự chấm: đúng mẫu yêu cầu, đủ ý và diễn đạt tự nhiên.",
+            "explanation": "やらない＋わけにはいきません: trách nhiệm sau khi nhận việc.",
+            "commonErrors": "Không dùng やるわけにはいきません: sẽ nói không thể làm, ngược đề.",
+            "fullSentence": "仕事を引き受けたので、最後までやらないわけにはいきません。",
+            "self_assessment": "Tự chấm: đúng mẫu yêu cầu, đủ ý và diễn đạt tự nhiên.",
+            "complete_sentence": "仕事を引き受けたので、最後までやらないわけにはいきません。",
+            "distractor_errors": "Không dùng やるわけにはいきません: sẽ nói không thể làm, ngược đề.",
+            "detailed_explanation": "やらない＋わけにはいきません: trách nhiệm sau khi nhận việc."
+          }
+        ],
+        "caution": "Phủ định kép: không thể lựa chọn “không làm”. Thường của người nói, nhưng có thể nói người khác nếu có căn cứ/ngữ cảnh; không cấm tuyệt đối ngôi thứ ba.",
+        "meaning": "Không thể không… / phải…; trách nhiệm, cam kết hoặc lẽ thường buộc phải hành động.",
+        "examples": [
+          {
+            "stt": 1,
+            "note": "Ví dụ từ tài liệu; nhấn tình huống cụ thể.",
+            "analysis": "出席しない＋わけにはいかない: trách nhiệm tình cảm khiến không thể vắng.",
+            "japanese": "親友の結婚式だから、忙しくても出席しないわけにはいかない。",
+            "vietnamese": "Vì là đám cưới bạn thân nên dù bận, tôi cũng phải tham dự.",
+            "vocabulary": "親友（しんゆう）: bạn thân; 結婚式（けっこんしき）: lễ cưới; 出席（しゅっせき）: tham dự.",
+            "vocabulary_furigana": "親友（しんゆう）: bạn thân; 結婚式（けっこんしき）: lễ cưới; 出席（しゅっせき）: tham dự."
+          },
+          {
+            "stt": 2,
+            "note": "Ví dụ bổ sung tự soạn về trách nhiệm giữ lời.",
+            "analysis": "手伝わない＋わけにはいきません: không thể không giúp do cam kết.",
+            "japanese": "約束したので、最後まで手伝わないわけにはいきません。",
+            "vietnamese": "Vì đã hứa, tôi phải giúp đến cùng.",
+            "vocabulary": "約束（やくそく）: lời hứa; 最後（さいご）: cuối; 手伝う（てつだう）: giúp.",
+            "vocabulary_furigana": "約束（やくそく）: lời hứa; 最後（さいご）: cuối; 手伝う（てつだう）: giúp."
+          }
+        ],
+        "itemCode": "Bai_25_04_NaiWakeNiwaIkanai",
+        "lessonId": "lesson-grammar-1793519399940-b9isd",
+        "createdAt": "2026-11-01T07:49:10.042Z",
+        "exampleJp": "親友の結婚式だから、忙しくても出席しないわけにはいかない。",
+        "exampleVi": "Vì là đám cưới bạn thân nên dù bận, tôi cũng phải tham dự.",
+        "exercises": [
+          {
+            "stt": 1,
+            "hint": "Đã mượn thì phải trả; cần phủ định trước mẫu để có nghĩa phải làm.",
+            "type": "multiple_choice",
+            "optionA": "返す",
+            "optionB": "返さない",
+            "optionC": "返して",
+            "option_a": "返す",
+            "option_b": "返さない",
+            "option_c": "返して",
+            "question": "借りた本は、期限までに（　）わけにはいきません。"
+          },
+          {
+            "stt": 2,
+            "hint": "Đã nhận việc: 仕事を引き受けた; làm đến cùng: 最後までやる → やらない.",
+            "type": "translate",
+            "question": "Dịch, dùng「ないわけにはいかない」: Vì đã nhận việc, tôi phải làm đến cùng."
+          }
+        ],
+        "jlptLevel": "N2",
+        "sortOrder": 3,
+        "structure": "V-ない ＋ わけに（は）いかない／いきません",
+        "updatedAt": "2026-11-01T07:49:10.042Z",
+        "distinction": "行くわけにはいかない = không thể đi; 行かないわけにはいかない = phải đi. Chú ý thể phủ định trước わけ.",
+        "explanation": "Phủ định kép: không thể lựa chọn “không làm”. Thường của người nói, nhưng có thể nói người khác nếu có căn cứ/ngữ cảnh; không cấm tuyệt đối ngôi thứ ba.",
+        "connectionRule": "V-ない ＋ わけに（は）いかない／いきません",
+        "grammarPattern": "～ないわけに（は）いかない",
+        "exampleAnalysis": "出席しない＋わけにはいかない: trách nhiệm tình cảm khiến không thể vắng."
+      },
+      {
+        "id": "gitem-1793519399940-25qpy",
+        "tags": "N2, ざるを得ない",
+        "notes": "Ví dụ từ tài liệu; không xác định giả thuyết của người thật.",
+        "active": true,
+        "itemId": "Bai_25_05_ZaruWoEnai",
+        "source": "ngu-phap-n2-shinkanzen 2.docx — Bài 25, mục 5",
+        "answers": [
+          {
+            "stt": 1,
+            "answer": "C: せ",
+            "selfAssess": "Tự chấm: chọn đúng và giải thích được cách nối, sắc thái.",
+            "explanation": "変更する→変更せざるを得ません: buộc đổi kế hoạch vì thiếu ngân sách.",
+            "commonErrors": "A tạo しざる sai; B tạo するざる sai.",
+            "fullSentence": "予算が足りないので、計画を変更せざるを得ません。",
+            "self_assessment": "Tự chấm: chọn đúng và giải thích được cách nối, sắc thái.",
+            "complete_sentence": "予算が足りないので、計画を変更せざるを得ません。",
+            "distractor_errors": "A tạo しざる sai; B tạo するざる sai.",
+            "detailed_explanation": "変更する→変更せざるを得ません: buộc đổi kế hoạch vì thiếu ngân sách."
+          },
+          {
+            "stt": 2,
+            "answer": "時間がないので、旅行をあきらめざるを得ません。",
+            "selfAssess": "Tự chấm: đúng mẫu yêu cầu, đủ ý và diễn đạt tự nhiên.",
+            "explanation": "あきらめない bỏ ない＋ざるを得ません: buộc từ bỏ, không do ý thích.",
+            "commonErrors": "Không viết あきらめないざる. Chấp nhận ざるを得ない trong văn phong thường.",
+            "fullSentence": "時間がないので、旅行をあきらめざるを得ません。",
+            "self_assessment": "Tự chấm: đúng mẫu yêu cầu, đủ ý và diễn đạt tự nhiên.",
+            "complete_sentence": "時間がないので、旅行をあきらめざるを得ません。",
+            "distractor_errors": "Không viết あきらめないざる. Chấp nhận ざるを得ない trong văn phong thường.",
+            "detailed_explanation": "あきらめない bỏ ない＋ざるを得ません: buộc từ bỏ, không do ý thích."
+          }
+        ],
+        "caution": "得ない đọc là えない. Mẫu thường gặp trong văn viết/trang trọng và dùng được với ngôi thứ ba; chỉnh lưu ý hạn chế quá mức của Word.",
+        "meaning": "Đành phải… / không có lựa chọn khác; hoàn cảnh buộc làm dù không mong muốn.",
+        "examples": [
+          {
+            "stt": 1,
+            "note": "Ví dụ từ tài liệu; không xác định giả thuyết của người thật.",
+            "analysis": "言わない→言わ＋ざるを得ない: buộc thừa nhận từ bằng chứng.",
+            "japanese": "これだけ反対の証拠が多いから、彼の説は間違っていたと言わざるを得ない。",
+            "vietnamese": "Có quá nhiều bằng chứng phản bác nên đành phải nói rằng giả thuyết của anh ấy đã sai.",
+            "vocabulary": "証拠（しょうこ）: bằng chứng; 説（せつ）: giả thuyết; 間違う（まちがう）: sai.",
+            "vocabulary_furigana": "証拠（しょうこ）: bằng chứng; 説（せつ）: giả thuyết; 間違う（まちがう）: sai."
+          },
+          {
+            "stt": 2,
+            "note": "Ví dụ bổ sung tự soạn; không phải tình trạng giao thông hiện tại.",
+            "analysis": "利用する→利用せざるを得ませんでした: phương án bị hoàn cảnh buộc chọn.",
+            "japanese": "電車が止まったので、タクシーを利用せざるを得ませんでした。",
+            "vietnamese": "Vì tàu ngừng chạy, tôi đành phải dùng taxi.",
+            "vocabulary": "止まる（とまる）: ngừng; 利用（りよう）: sử dụng; タクシー: taxi.",
+            "vocabulary_furigana": "止まる（とまる）: ngừng; 利用（りよう）: sử dụng; タクシー: taxi."
+          }
+        ],
+        "itemCode": "Bai_25_05_ZaruWoEnai",
+        "lessonId": "lesson-grammar-1793519399940-b9isd",
+        "createdAt": "2026-11-01T07:49:10.042Z",
+        "exampleJp": "これだけ反対の証拠が多いから、彼の説は間違っていたと言わざるを得ない。",
+        "exampleVi": "Có quá nhiều bằng chứng phản bác nên đành phải nói rằng giả thuyết của anh ấy đã sai.",
+        "exercises": [
+          {
+            "stt": 1,
+            "hint": "する → せざる; nhớ ngoại lệ.",
+            "type": "multiple_choice",
+            "optionA": "し",
+            "optionB": "する",
+            "optionC": "せ",
+            "option_a": "し",
+            "option_b": "する",
+            "option_c": "せ",
+            "question": "予算が足りないので、計画を変更（　）ざるを得ません。"
+          },
+          {
+            "stt": 2,
+            "hint": "Không có thời gian: 時間がない; từ bỏ chuyến đi: 旅行をあきらめる.",
+            "type": "translate",
+            "question": "Dịch, dùng「ざるを得ない」: Vì không có thời gian, tôi đành phải từ bỏ chuyến du lịch."
+          }
+        ],
+        "jlptLevel": "N2",
+        "sortOrder": 4,
+        "structure": "V thể ない bỏ ない ＋ ざるを得ない；する → せざるを得ない",
+        "updatedAt": "2026-11-01T07:49:10.042Z",
+        "distinction": "わけにはいかない gắn đạo lý/trách nhiệm; ざるを得ない nhấn hoàn cảnh không tránh được. Không phải lúc nào cũng có cảm xúc tự phát như ずにはいられない.",
+        "explanation": "得ない đọc là えない. Mẫu thường gặp trong văn viết/trang trọng và dùng được với ngôi thứ ba; chỉnh lưu ý hạn chế quá mức của Word.",
+        "connectionRule": "V thể ない bỏ ない ＋ ざるを得ない；する → せざるを得ない",
+        "grammarPattern": "～ざるを得ない",
+        "exampleAnalysis": "言わない→言わ＋ざるを得ない: buộc thừa nhận từ bằng chứng."
+      },
+      {
+        "id": "gitem-1793519399940-n4eyq",
+        "tags": "N2, たいものだ, てほしいものだ",
+        "notes": "Ví dụ từ tài liệu; không tự thêm yêu cầu người khác dẫn đi.",
+        "active": true,
+        "itemId": "Bai_26_01_TaiMonoDa",
+        "source": "ngu-phap-n2-shinkanzen 2.docx — Bài 26 (bài cuối), mục 1",
+        "answers": [
+          {
+            "stt": 1,
+            "answer": "B: 学びたい",
+            "selfAssess": "Tự chấm: chọn đúng và giải thích được cách nối, sắc thái.",
+            "explanation": "学ぶ→学び＋たいものです: mong một ngày học văn hóa Nhật.",
+            "commonErrors": "A ghép thân ます với て sai; C nối thể từ điển với たい sai.",
+            "fullSentence": "いつか日本の文化を学びたいものです。",
+            "self_assessment": "Tự chấm: chọn đúng và giải thích được cách nối, sắc thái.",
+            "complete_sentence": "いつか日本の文化を学びたいものです。",
+            "distractor_errors": "A ghép thân ます với て sai; C nối thể từ điển với たい sai.",
+            "detailed_explanation": "学ぶ→学び＋たいものです: mong một ngày học văn hóa Nhật."
+          },
+          {
+            "stt": 2,
+            "answer": "生徒たちには上達してほしいものです。",
+            "selfAssess": "Tự chấm: đúng mẫu yêu cầu, đủ ý và diễn đạt tự nhiên.",
+            "explanation": "上達して＋ほしいものです: mong học sinh tiến bộ; には nêu người mình mong làm.",
+            "commonErrors": "Không dùng 上達したいものです: sẽ chuyển người muốn tự tiến bộ thành người nói. Chấp nhận 生徒たちに.",
+            "fullSentence": "生徒たちには上達してほしいものです。",
+            "self_assessment": "Tự chấm: đúng mẫu yêu cầu, đủ ý và diễn đạt tự nhiên.",
+            "complete_sentence": "生徒たちには上達してほしいものです。",
+            "distractor_errors": "Không dùng 上達したいものです: sẽ chuyển người muốn tự tiến bộ thành người nói. Chấp nhận 生徒たちに.",
+            "detailed_explanation": "上達して＋ほしいものです: mong học sinh tiến bộ; には nêu người mình mong làm."
+          }
+        ],
+        "caution": "たい: người nói muốn tự làm; てほしい: mong người khác làm hoặc sự việc xảy ra. Không dùng như lời đặt hàng/yêu cầu trực tiếp thông thường.",
+        "meaning": "Rất mong/muốn…; nhấn mạnh nguyện vọng trong lòng, không trực tiếp yêu cầu đối phương.",
+        "examples": [
+          {
+            "stt": 1,
+            "note": "Ví dụ từ tài liệu; không tự thêm yêu cầu người khác dẫn đi.",
+            "analysis": "見てみる→見てみたい＋ものです: nguyện vọng thử xem của người nói.",
+            "japanese": "そんなにきれいな絵なら、ぜひ一度見てみたいものです。",
+            "vietnamese": "Nếu tranh đẹp đến vậy, tôi rất muốn được xem thử một lần.",
+            "vocabulary": "絵（え）: tranh; ぜひ: rất mong, nhất định; 一度（いちど）: một lần.",
+            "vocabulary_furigana": "絵（え）: tranh; ぜひ: rất mong, nhất định; 一度（いちど）: một lần."
+          },
+          {
+            "stt": 2,
+            "note": "Ví dụ từ tài liệu; là nguyện vọng, không dự đoán chắc chắn.",
+            "analysis": "成功して＋ほしいものだ: mong sự việc xảy ra; 今度こそ: chính lần này.",
+            "japanese": "今度こそ実験が成功してほしいものだ。",
+            "vietnamese": "Tôi thật mong lần này thí nghiệm sẽ thành công.",
+            "vocabulary": "実験（じっけん）: thí nghiệm; 成功（せいこう）: thành công; 今度（こんど）: lần này.",
+            "vocabulary_furigana": "実験（じっけん）: thí nghiệm; 成功（せいこう）: thành công; 今度（こんど）: lần này."
+          }
+        ],
+        "itemCode": "Bai_26_01_TaiMonoDa",
+        "lessonId": "lesson-grammar-1793519399940-b9isd",
+        "createdAt": "2026-11-01T07:49:10.042Z",
+        "exampleJp": "そんなにきれいな絵なら、ぜひ一度見てみたいものです。",
+        "exampleVi": "Nếu tranh đẹp đến vậy, tôi rất muốn được xem thử một lần.",
+        "exercises": [
+          {
+            "stt": 1,
+            "hint": "Người nói muốn tự học: thân ます＋たい.",
+            "type": "multiple_choice",
+            "optionA": "学びてほしい",
+            "optionB": "学びたい",
+            "optionC": "学ぶたい",
+            "option_a": "学びてほしい",
+            "option_b": "学びたい",
+            "option_c": "学ぶたい",
+            "question": "いつか日本の文化を（　）ものです。"
+          },
+          {
+            "stt": 2,
+            "hint": "Các học sinh: 生徒たち; tiến bộ: 上達する.",
+            "type": "translate",
+            "question": "Dịch, dùng「てほしいものだ」: Tôi thật mong các học sinh tiến bộ."
+          }
+        ],
+        "jlptLevel": "N2",
+        "sortOrder": 5,
+        "structure": "V thân ます ＋ たいものだ；V-て／V-ないで ＋ ほしいものだ",
+        "updatedAt": "2026-11-01T07:49:10.042Z",
+        "distinction": "ものだ làm nguyện vọng sâu hơn, suy tưởng hơn. 成功してほしい là mong thành công; 成功したい là muốn chính mình thành công.",
+        "explanation": "たい: người nói muốn tự làm; てほしい: mong người khác làm hoặc sự việc xảy ra. Không dùng như lời đặt hàng/yêu cầu trực tiếp thông thường.",
+        "connectionRule": "V thân ます ＋ たいものだ；V-て／V-ないで ＋ ほしいものだ",
+        "grammarPattern": "～たいものだ・～てほしいものだ",
+        "exampleAnalysis": "見てみる→見てみたい＋ものです: nguyện vọng thử xem của người nói."
+      },
+      {
+        "id": "gitem-1793519399940-89o8p",
+        "tags": "N2, ものだ（hồi tưởng, cảm thán）",
+        "notes": "Ví dụ từ tài liệu cho nghĩa hồi tưởng.",
+        "active": true,
+        "itemId": "Bai_26_02_MonoDa",
+        "source": "ngu-phap-n2-shinkanzen 2.docx — Bài 26 (bài cuối), mục 2",
+        "answers": [
+          {
+            "stt": 1,
+            "answer": "C: 勉強した",
+            "selfAssess": "Tự chấm: chọn đúng và giải thích được cách nối, sắc thái.",
+            "explanation": "勉強した＋ものです: kể lại thói quen thời sinh viên; 毎日 làm rõ tính lặp lại.",
+            "commonErrors": "A thể て; B thể lịch sự, không đúng V-た trước mẫu.",
+            "fullSentence": "学生のころは、毎日この図書館で勉強したものです。",
+            "self_assessment": "Tự chấm: chọn đúng và giải thích được cách nối, sắc thái.",
+            "complete_sentence": "学生のころは、毎日この図書館で勉強したものです。",
+            "distractor_errors": "A thể て; B thể lịch sự, không đúng V-た trước mẫu.",
+            "detailed_explanation": "勉強した＋ものです: kể lại thói quen thời sinh viên; 毎日 làm rõ tính lặp lại."
+          },
+          {
+            "stt": 2,
+            "answer": "子供の成長は早いものですね。",
+            "selfAssess": "Tự chấm: đúng mẫu yêu cầu, đủ ý và diễn đạt tự nhiên.",
+            "explanation": "早い＋ものですね: cảm thán và mời người nghe đồng cảm. Chấp nhận 子供は成長が早いものだ.",
+            "commonErrors": "Không dùng 成長したものです để dịch câu này: sẽ đổi cấu trúc, không còn trực tiếp cảm thán tốc độ.",
+            "fullSentence": "子供の成長は早いものですね。",
+            "self_assessment": "Tự chấm: đúng mẫu yêu cầu, đủ ý và diễn đạt tự nhiên.",
+            "complete_sentence": "子供の成長は早いものですね。",
+            "distractor_errors": "Không dùng 成長したものです để dịch câu này: sẽ đổi cấu trúc, không còn trực tiếp cảm thán tốc độ.",
+            "detailed_explanation": "早い＋ものですね: cảm thán và mời người nghe đồng cảm. Chấp nhận 子供は成長が早いものだ."
+          }
+        ],
+        "caution": "Nghĩa ① cần sự lặp lại trong quá khứ, không chỉ một sự kiện. Nghĩa ② thường có 早い、よく、ずいぶん… và bộc lộ cảm xúc.",
+        "meaning": "① Ngày trước thường…: hồi tưởng thói quen. ② Thật là…: cảm thán về sự việc, tính chất.",
+        "examples": [
+          {
+            "stt": 1,
+            "note": "Ví dụ từ tài liệu cho nghĩa hồi tưởng.",
+            "analysis": "泳いだ＋ものです: hồi tưởng thói quen lặp lại, không chỉ một lần bơi.",
+            "japanese": "子供のころ、夏になるとこの川で泳いだものです。",
+            "vietnamese": "Hồi nhỏ, cứ đến hè tôi lại thường bơi ở dòng sông này.",
+            "vocabulary": "子供（こども）: trẻ con; 川（かわ）: sông; 泳ぐ（およぐ）: bơi.",
+            "vocabulary_furigana": "子供（こども）: trẻ con; 川（かわ）: sông; 泳ぐ（およぐ）: bơi."
+          },
+          {
+            "stt": 2,
+            "note": "Ví dụ từ tài liệu cho nghĩa cảm thán; mốc 10 năm thuộc câu ngữ liệu.",
+            "analysis": "早い＋ものだ: cảm thán về tốc độ thời gian; không phải thói quen quá khứ.",
+            "japanese": "卒業してからもう１０年か。時間が過ぎるのは早いものだ。",
+            "vietnamese": "Đã 10 năm từ khi tốt nghiệp rồi sao? Thời gian trôi nhanh thật.",
+            "vocabulary": "卒業（そつぎょう）: tốt nghiệp; 時間（じかん）: thời gian; 過ぎる（すぎる）: trôi qua.",
+            "vocabulary_furigana": "卒業（そつぎょう）: tốt nghiệp; 時間（じかん）: thời gian; 過ぎる（すぎる）: trôi qua."
+          }
+        ],
+        "itemCode": "Bai_26_02_MonoDa",
+        "lessonId": "lesson-grammar-1793519399940-b9isd",
+        "createdAt": "2026-11-01T07:49:10.042Z",
+        "exampleJp": "子供のころ、夏になるとこの川で泳いだものです。",
+        "exampleVi": "Hồi nhỏ, cứ đến hè tôi lại thường bơi ở dòng sông này.",
+        "exercises": [
+          {
+            "stt": 1,
+            "hint": "Hồi tưởng thói quen học mỗi ngày trong quá khứ: V-た.",
+            "type": "multiple_choice",
+            "optionA": "勉強して",
+            "optionB": "勉強します",
+            "optionC": "勉強した",
+            "option_a": "勉強して",
+            "option_b": "勉強します",
+            "option_c": "勉強した",
+            "question": "学生のころは、毎日この図書館で（　）ものです。"
+          },
+          {
+            "stt": 2,
+            "hint": "Trẻ con: 子供; lớn lên: 成長する; nhanh: 早い.",
+            "type": "translate",
+            "question": "Dịch, dùng「ものだ」 theo nghĩa cảm thán: Trẻ con lớn nhanh thật!"
+          }
+        ],
+        "jlptLevel": "N2",
+        "sortOrder": 6,
+        "structure": "① V-た ＋ ものだ；② V／A-い thể thông thường／Na-な ＋ ものだ（tùy nội dung）",
+        "updatedAt": "2026-11-01T07:49:10.042Z",
+        "distinction": "Bài 23: khái quát; Bài 24: lời dạy; bài này: hồi tưởng/cảm thán. V-たものだ không đồng nghĩa “vừa mới” V-たところだ.",
+        "explanation": "Nghĩa ① cần sự lặp lại trong quá khứ, không chỉ một sự kiện. Nghĩa ② thường có 早い、よく、ずいぶん… và bộc lộ cảm xúc.",
+        "connectionRule": "① V-た ＋ ものだ；② V／A-い thể thông thường／Na-な ＋ ものだ（tùy nội dung）",
+        "grammarPattern": "～ものだ（hồi tưởng・cảm thán）",
+        "exampleAnalysis": "泳いだ＋ものです: hồi tưởng thói quen lặp lại, không chỉ một lần bơi."
+      },
+      {
+        "id": "gitem-1793519399940-5u4ud",
+        "tags": "N2, ないもの（だろう）か",
+        "notes": "Ví dụ ngữ pháp từ tài liệu; không dịch thành “bằng bất kỳ giá nào”, không phải hướng dẫn chữa bệnh.",
+        "active": true,
+        "itemId": "Bai_26_03_NaiMonoKa",
+        "source": "ngu-phap-n2-shinkanzen 2.docx — Bài 26 (bài cuối), mục 3",
+        "answers": [
+          {
+            "stt": 1,
+            "answer": "A: 買えない",
+            "selfAssess": "Tự chấm: chọn đúng và giải thích được cách nối, sắc thái.",
+            "explanation": "買えない＋ものだろうか: mong tìm cách có thể mua rẻ, không quyết không mua.",
+            "commonErrors": "B và C không tạo mẫu nguyện vọng V-ないものだろうか.",
+            "fullSentence": "どうにかして、もっと安く買えないものだろうか。",
+            "self_assessment": "Tự chấm: chọn đúng và giải thích được cách nối, sắc thái.",
+            "complete_sentence": "どうにかして、もっと安く買えないものだろうか。",
+            "distractor_errors": "B và C không tạo mẫu nguyện vọng V-ないものだろうか.",
+            "detailed_explanation": "買えない＋ものだろうか: mong tìm cách có thể mua rẻ, không quyết không mua."
+          },
+          {
+            "stt": 2,
+            "answer": "もう一度先生に会えないものだろうか。",
+            "selfAssess": "Tự chấm: đúng mẫu yêu cầu, đủ ý và diễn đạt tự nhiên.",
+            "explanation": "会える→会えない＋ものだろうか: tự hỏi mong còn khả năng gặp lại.",
+            "commonErrors": "Không dùng 会うものか: sẽ thành nhất quyết không gặp. Chấp nhận 会えないものか.",
+            "fullSentence": "もう一度先生に会えないものだろうか。",
+            "self_assessment": "Tự chấm: đúng mẫu yêu cầu, đủ ý và diễn đạt tự nhiên.",
+            "complete_sentence": "もう一度先生に会えないものだろうか。",
+            "distractor_errors": "Không dùng 会うものか: sẽ thành nhất quyết không gặp. Chấp nhận 会えないものか.",
+            "detailed_explanation": "会える→会えない＋ものだろうか: tự hỏi mong còn khả năng gặp lại."
+          }
+        ],
+        "caution": "Thường có どうにか、なんとか; phủ định hình thức nhưng mong điều tích cực xảy ra. Không phải lời yêu cầu trực tiếp hay phủ định ý chí.",
+        "meaning": "Ước gì/có cách nào… được không?; mong một điều khó thực hiện, thường tự hỏi hoặc tìm khả năng.",
+        "examples": [
+          {
+            "stt": 1,
+            "note": "Ví dụ ngữ pháp từ tài liệu; không dịch thành “bằng bất kỳ giá nào”, không phải hướng dẫn chữa bệnh.",
+            "analysis": "治らない＋ものか: mong điều chưa dễ thực hiện; どうにかして: bằng một cách nào đó.",
+            "japanese": "どうにかして母の病気が治らないものか。",
+            "vietnamese": "Ước gì có cách nào đó để bệnh của mẹ khỏi được.",
+            "vocabulary": "病気（びょうき）: bệnh; 治る（なおる）: khỏi; 母（はは）: mẹ.",
+            "vocabulary_furigana": "病気（びょうき）: bệnh; 治る（なおる）: khỏi; 母（はは）: mẹ."
+          },
+          {
+            "stt": 2,
+            "note": "Ví dụ từ tài liệu; là câu tự hỏi/tìm khả năng.",
+            "analysis": "いない＋ものだろうか: mong tìm được người; くれる nêu lợi ích cho người nói.",
+            "japanese": "誰かこの仕事を引き受けてくれる人はいないものだろうか。",
+            "vietnamese": "Liệu có ai có thể nhận giúp công việc này không nhỉ?",
+            "vocabulary": "引き受ける（ひきうける）: nhận đảm nhiệm; 誰か（だれか）: ai đó.",
+            "vocabulary_furigana": "引き受ける（ひきうける）: nhận đảm nhiệm; 誰か（だれか）: ai đó."
+          }
+        ],
+        "itemCode": "Bai_26_03_NaiMonoKa",
+        "lessonId": "lesson-grammar-1793519399940-b9isd",
+        "createdAt": "2026-11-01T07:49:10.042Z",
+        "exampleJp": "どうにかして母の病気が治らないものか。",
+        "exampleVi": "Ước gì có cách nào đó để bệnh của mẹ khỏi được.",
+        "exercises": [
+          {
+            "stt": 1,
+            "hint": "Mong có cách mua rẻ hơn: thể khả năng phủ định trước mẫu.",
+            "type": "multiple_choice",
+            "optionA": "買えない",
+            "optionB": "買う",
+            "optionC": "買って",
+            "option_a": "買えない",
+            "option_b": "買う",
+            "option_c": "買って",
+            "question": "どうにかして、もっと安く（　）ものだろうか。"
+          },
+          {
+            "stt": 2,
+            "hint": "Có thể gặp: 会える; một lần nữa: もう一度; thầy: 先生.",
+            "type": "translate",
+            "question": "Dịch, dùng「ないものだろうか」: Ước gì tôi có thể gặp lại thầy một lần nữa."
+          }
+        ],
+        "jlptLevel": "N2",
+        "sortOrder": 7,
+        "structure": "V-ない（thường thể khả năng hoặc động từ diễn biến）＋ ものか／ものだろうか",
+        "updatedAt": "2026-11-01T07:49:10.042Z",
+        "distinction": "治らないものか = mong có cách chữa khỏi; するものか = nhất quyết không làm. Phải phân biệt nguyện vọng của mẫu với ものか phản bác.",
+        "explanation": "Thường có どうにか、なんとか; phủ định hình thức nhưng mong điều tích cực xảy ra. Không phải lời yêu cầu trực tiếp hay phủ định ý chí.",
+        "connectionRule": "V-ない（thường thể khả năng hoặc động từ diễn biến）＋ ものか／ものだろうか",
+        "grammarPattern": "～ないもの（だろう）か",
+        "exampleAnalysis": "治らない＋ものか: mong điều chưa dễ thực hiện; どうにかして: bằng một cách nào đó."
+      },
+      {
+        "id": "gitem-1793519399940-y0id0",
+        "tags": "N2, ものがある",
+        "notes": "Hiệu đính ここまれ → ここまで; 完成 không dịch thành “thành công”.",
+        "active": true,
+        "itemId": "Bai_26_04_MonoGaAru",
+        "source": "ngu-phap-n2-shinkanzen 2.docx — Bài 26 (bài cuối), mục 4",
+        "answers": [
+          {
+            "stt": 1,
+            "answer": "C: 驚く",
+            "selfAssess": "Tự chấm: chọn đúng và giải thích được cách nối, sắc thái.",
+            "explanation": "驚く＋ものがある: mức khắc nghiệt của công việc có điểm gây ngạc nhiên.",
+            "commonErrors": "A dùng sai thể て của 驚く（đúng là 驚いて）; B thêm な sau động từ sai. C dùng thể từ điển đúng.",
+            "fullSentence": "この仕事の厳しさには、驚くものがあります。",
+            "self_assessment": "Tự chấm: chọn đúng và giải thích được cách nối, sắc thái.",
+            "complete_sentence": "この仕事の厳しさには、驚くものがあります。",
+            "distractor_errors": "A dùng sai thể て của 驚く（đúng là 驚いて）; B thêm な sau động từ sai. C dùng thể từ điển đúng.",
+            "detailed_explanation": "驚く＋ものがある: mức khắc nghiệt của công việc có điểm gây ngạc nhiên."
+          },
+          {
+            "stt": 2,
+            "answer": "その話には、考えさせられるものがあります。",
+            "selfAssess": "Tự chấm: đúng mẫu yêu cầu, đủ ý và diễn đạt tự nhiên.",
+            "explanation": "考えさせられる＋ものがあります: có khía cạnh buộc người nghe suy ngẫm.",
+            "commonErrors": "Không dùng 考えさせられるなものがある; động từ không thêm な trước もの.",
+            "fullSentence": "その話には、考えさせられるものがあります。",
+            "self_assessment": "Tự chấm: đúng mẫu yêu cầu, đủ ý và diễn đạt tự nhiên.",
+            "complete_sentence": "その話には、考えさせられるものがあります。",
+            "distractor_errors": "Không dùng 考えさせられるなものがある; động từ không thêm な trước もの.",
+            "detailed_explanation": "考えさせられる＋ものがあります: có khía cạnh buộc người nghe suy ngẫm."
+          }
+        ],
+        "caution": "Thường gặp 感動するものがある、考えさせられるものがある、厳しいものがある. もの không chỉ vật cụ thể ở nghĩa đánh giá này.",
+        "meaning": "Có gì đó thật… / có điểm khiến cảm thấy…; đánh giá một đặc tính gây ấn tượng rõ.",
+        "examples": [
+          {
+            "stt": 1,
+            "note": "Hiệu đính ここまれ → ここまで; 完成 không dịch thành “thành công”.",
+            "analysis": "残念（Na）＋なものがある: cảm nhận đáng tiếc trước tình huống; なんて nhấn ngạc nhiên.",
+            "japanese": "ここまで完成しているのにあきらめなければならないなんて、残念なものがある。",
+            "vietnamese": "Đã hoàn thiện đến mức này mà phải bỏ cuộc, thật có điều khiến người ta tiếc nuối.",
+            "vocabulary": "完成（かんせい）: hoàn thiện; 残念（ざんねん）: đáng tiếc; あきらめる: từ bỏ.",
+            "vocabulary_furigana": "完成（かんせい）: hoàn thiện; 残念（ざんねん）: đáng tiếc; あきらめる: từ bỏ."
+          },
+          {
+            "stt": 2,
+            "note": "Ví dụ bổ sung tự soạn để luyện dạng nối động từ.",
+            "analysis": "心を動かす（V-る）＋ものがある: đặc tính tạo ấn tượng xúc động.",
+            "japanese": "この作品には、人の心を動かすものがあります。",
+            "vietnamese": "Tác phẩm này có điều gì đó làm lay động lòng người.",
+            "vocabulary": "作品（さくひん）: tác phẩm; 心（こころ）: tâm hồn; 動かす（うごかす）: làm lay động.",
+            "vocabulary_furigana": "作品（さくひん）: tác phẩm; 心（こころ）: tâm hồn; 動かす（うごかす）: làm lay động."
+          }
+        ],
+        "itemCode": "Bai_26_04_MonoGaAru",
+        "lessonId": "lesson-grammar-1793519399940-b9isd",
+        "createdAt": "2026-11-01T07:49:10.042Z",
+        "exampleJp": "ここまで完成しているのにあきらめなければならないなんて、残念なものがある。",
+        "exampleVi": "Đã hoàn thiện đến mức này mà phải bỏ cuộc, thật có điều khiến người ta tiếc nuối.",
+        "exercises": [
+          {
+            "stt": 1,
+            "hint": "驚く nối trực tiếp ものがある bằng thể từ điển.",
+            "type": "multiple_choice",
+            "optionA": "驚きて",
+            "optionB": "驚くな",
+            "optionC": "驚く",
+            "option_a": "驚きて",
+            "option_b": "驚くな",
+            "option_c": "驚く",
+            "question": "この仕事の厳しさには、（　）ものがあります。"
+          },
+          {
+            "stt": 2,
+            "hint": "Câu chuyện ấy: その話; khiến tôi suy nghĩ: 考えさせられる.",
+            "type": "translate",
+            "question": "Dịch, dùng「ものがある」: Câu chuyện ấy có điều gì đó khiến tôi suy nghĩ."
+          }
+        ],
+        "jlptLevel": "N2",
+        "sortOrder": 8,
+        "structure": "V-る／A-い／Na-な ＋ ものがある",
+        "updatedAt": "2026-11-01T07:49:10.042Z",
+        "distinction": "ものがある nhấn có khía cạnh/đặc tính gợi cảm nhận; ものだ cảm thán hoặc khái quát rộng hơn. Không thêm の sau tính từ な đã có な.",
+        "explanation": "Thường gặp 感動するものがある、考えさせられるものがある、厳しいものがある. もの không chỉ vật cụ thể ở nghĩa đánh giá này.",
+        "connectionRule": "V-る／A-い／Na-な ＋ ものがある",
+        "grammarPattern": "～ものがある",
+        "exampleAnalysis": "残念（Na）＋なものがある: cảm nhận đáng tiếc trước tình huống; なんて nhấn ngạc nhiên."
+      },
+      {
+        "id": "gitem-1793519399940-ruwpd",
+        "tags": "N2, ことだ（cảm thán）",
+        "notes": "Ví dụ từ tài liệu; thể hiện phê phán bỏ rơi thú nuôi.",
+        "active": true,
+        "itemId": "Bai_26_05_KotoDa",
+        "source": "ngu-phap-n2-shinkanzen 2.docx — Bài 26 (bài cuối), mục 5",
+        "answers": [
+          {
+            "stt": 1,
+            "answer": "A: うれしい",
+            "selfAssess": "Tự chấm: chọn đúng và giải thích được cách nối, sắc thái.",
+            "explanation": "うれしいことだ: vui thật khi nỗ lực được công nhận, không phải lời khuyên.",
+            "commonErrors": "B dạng trạng ngữ; C chia sai tính từ い.",
+            "fullSentence": "努力が認められたなんて、なんとうれしいことだ。",
+            "self_assessment": "Tự chấm: chọn đúng và giải thích được cách nối, sắc thái.",
+            "complete_sentence": "努力が認められたなんて、なんとうれしいことだ。",
+            "distractor_errors": "B dạng trạng ngữ; C chia sai tính từ い.",
+            "detailed_explanation": "うれしいことだ: vui thật khi nỗ lực được công nhận, không phải lời khuyên."
+          },
+          {
+            "stt": 2,
+            "answer": "コンサートを中止しなければならないなんて、残念なことです。",
+            "selfAssess": "Tự chấm: đúng mẫu yêu cầu, đủ ý và diễn đạt tự nhiên.",
+            "explanation": "Na-な 残念な＋ことです: cảm thán về việc phải hủy. Chấp nhận なんと残念なことだ.",
+            "commonErrors": "Không dùng 残念だことです; tính từ な cần な khi bổ nghĩa こと.",
+            "fullSentence": "コンサートを中止しなければならないなんて、残念なことです。",
+            "self_assessment": "Tự chấm: đúng mẫu yêu cầu, đủ ý và diễn đạt tự nhiên.",
+            "complete_sentence": "コンサートを中止しなければならないなんて、残念なことです。",
+            "distractor_errors": "Không dùng 残念だことです; tính từ な cần な khi bổ nghĩa こと.",
+            "detailed_explanation": "Na-な 残念な＋ことです: cảm thán về việc phải hủy. Chấp nhận なんと残念なことだ."
+          }
+        ],
+        "caution": "Thường đi với なんと、まったく…; こと danh từ hóa điều được đánh giá. Không phải lời khuyên làm hay không làm.",
+        "meaning": "Thật là…!; bộc lộ cảm xúc, đánh giá mạnh trước một sự việc.",
+        "examples": [
+          {
+            "stt": 1,
+            "note": "Ví dụ từ tài liệu; thể hiện phê phán bỏ rơi thú nuôi.",
+            "analysis": "ひどい＋ことだ: cảm thán về hành vi; からと nêu lý do được viện dẫn.",
+            "japanese": "大きくなりすぎたからとペットを簡単に捨てる人がいる。なんとひどいことだ。",
+            "vietnamese": "Có người dễ dàng bỏ thú nuôi chỉ vì chúng lớn quá. Thật quá đáng!",
+            "vocabulary": "ペット: thú nuôi; 捨てる（すてる）: bỏ; ひどい: quá đáng.",
+            "vocabulary_furigana": "ペット: thú nuôi; 捨てる（すてる）: bỏ; ひどい: quá đáng."
+          },
+          {
+            "stt": 2,
+            "note": "Ví dụ từ tài liệu; いくら…ても nhấn gọi bao nhiêu cũng vậy.",
+            "analysis": "困った＋ことだ: cụm đánh giá tình huống; không nhất thiết nói một lần khó xử đã kết thúc.",
+            "japanese": "いくら電話しても出ない。まったく困ったことだ。",
+            "vietnamese": "Gọi bao lần cũng không nghe máy. Thật là khó xử!",
+            "vocabulary": "電話（でんわ）: điện thoại; 出る（でる）: nghe máy; 困る（こまる）: khó xử.",
+            "vocabulary_furigana": "電話（でんわ）: điện thoại; 出る（でる）: nghe máy; 困る（こまる）: khó xử."
+          }
+        ],
+        "itemCode": "Bai_26_05_KotoDa",
+        "lessonId": "lesson-grammar-1793519399940-b9isd",
+        "createdAt": "2026-11-01T07:49:10.042Z",
+        "exampleJp": "大きくなりすぎたからとペットを簡単に捨てる人がいる。なんとひどいことだ。",
+        "exampleVi": "Có người dễ dàng bỏ thú nuôi chỉ vì chúng lớn quá. Thật quá đáng!",
+        "exercises": [
+          {
+            "stt": 1,
+            "hint": "A-い giữ đuôi い trước ことだ.",
+            "type": "multiple_choice",
+            "optionA": "うれしい",
+            "optionB": "うれしく",
+            "optionC": "うれしな",
+            "option_a": "うれしい",
+            "option_b": "うれしく",
+            "option_c": "うれしな",
+            "question": "努力が認められたなんて、なんと（　）ことだ。"
+          },
+          {
+            "stt": 2,
+            "hint": "Phải hủy: …を中止しなければならない; đáng tiếc: 残念だ.",
+            "type": "translate",
+            "question": "Dịch, dùng「ことだ」 cảm thán: Thật đáng tiếc khi phải hủy buổi hòa nhạc."
+          }
+        ],
+        "jlptLevel": "N2",
+        "sortOrder": 9,
+        "structure": "A-い／Na-な ＋ ことだ；một số cụm V-た mang tính đánh giá như 困ったことだ",
+        "updatedAt": "2026-11-01T07:49:10.042Z",
+        "distinction": "Bài 24 V-る／V-ないことだ là khuyên; ひどいことだ ở đây là cảm thán. Không dịch mọi câu ことです là “nên”.",
+        "explanation": "Thường đi với なんと、まったく…; こと danh từ hóa điều được đánh giá. Không phải lời khuyên làm hay không làm.",
+        "connectionRule": "A-い／Na-な ＋ ことだ；một số cụm V-た mang tính đánh giá như 困ったことだ",
+        "grammarPattern": "～ことだ（cảm thán）",
+        "exampleAnalysis": "ひどい＋ことだ: cảm thán về hành vi; からと nêu lý do được viện dẫn."
+      },
+      {
+        "id": "gitem-1793519399940-80wxr",
+        "tags": "N2, ことだろう, ことか",
+        "notes": "Ví dụ từ tài liệu; là sự đồng cảm/suy đoán, không đo mức lo thực tế.",
+        "active": true,
+        "itemId": "Bai_26_06_KotoKa",
+        "source": "ngu-phap-n2-shinkanzen 2.docx — Bài 26 (bài cuối), mục 6",
+        "answers": [
+          {
+            "stt": 1,
+            "answer": "B: どんなに",
+            "selfAssess": "Tự chấm: chọn đúng và giải thích được cách nối, sắc thái.",
+            "explanation": "どんなに…ことか: đã trải qua biết bao khó khăn trước ngày này.",
+            "commonErrors": "A hỏi nơi; C hỏi người, không tạo cảm thán mức độ của 苦労.",
+            "fullSentence": "この日を迎えるまで、どんなに苦労したことか。",
+            "self_assessment": "Tự chấm: chọn đúng và giải thích được cách nối, sắc thái.",
+            "complete_sentence": "この日を迎えるまで、どんなに苦労したことか。",
+            "distractor_errors": "A hỏi nơi; C hỏi người, không tạo cảm thán mức độ của 苦労.",
+            "detailed_explanation": "どんなに…ことか: đã trải qua biết bao khó khăn trước ngày này."
+          },
+          {
+            "stt": 2,
+            "answer": "日本語を流暢に話せるようになるまで、何回練習したことか。",
+            "selfAssess": "Tự chấm: đúng mẫu yêu cầu, đủ ý và diễn đạt tự nhiên.",
+            "explanation": "何回＋練習した＋ことか: cảm thán số lần luyện; ようになるまで nói quá trình đến lúc nói được.",
+            "commonErrors": "Không dùng 何回練習しましたか: sẽ thành hỏi số lần cần trả lời, không phải cảm thán. Chấp nhận 何度.",
+            "fullSentence": "日本語を流暢に話せるようになるまで、何回練習したことか。",
+            "self_assessment": "Tự chấm: đúng mẫu yêu cầu, đủ ý và diễn đạt tự nhiên.",
+            "complete_sentence": "日本語を流暢に話せるようになるまで、何回練習したことか。",
+            "distractor_errors": "Không dùng 何回練習しましたか: sẽ thành hỏi số lần cần trả lời, không phải cảm thán. Chấp nhận 何度.",
+            "detailed_explanation": "何回＋練習した＋ことか: cảm thán số lần luyện; ようになるまで nói quá trình đến lúc nói được."
+          }
+        ],
+        "caution": "Thường gắn cảm xúc mạnh như 心配、喜び、苦労. Không phải câu hỏi yêu cầu người nghe đếm hoặc trả lời mức độ chính xác.",
+        "meaning": "Biết bao… / đã…bao lần!; nhấn mức độ hoặc số lần bằng cảm thán.",
+        "examples": [
+          {
+            "stt": 1,
+            "note": "Ví dụ từ tài liệu; là sự đồng cảm/suy đoán, không đo mức lo thực tế.",
+            "analysis": "どんなに＋心配している＋ことか: cảm thán mức lo của cha mẹ.",
+            "japanese": "離れて暮らしているあなたのことを、ご両親はどんなに心配していることか。",
+            "vietnamese": "Cha mẹ hẳn đang lo cho bạn sống xa nhà biết bao.",
+            "vocabulary": "離れる（はなれる）: xa; 暮らす（くらす）: sống; 両親（りょうしん）: cha mẹ.",
+            "vocabulary_furigana": "離れる（はなれる）: xa; 暮らす（くらす）: sống; 両親（りょうしん）: cha mẹ."
+          },
+          {
+            "stt": 2,
+            "note": "Ví dụ bổ sung tự soạn về niềm vui của học sinh.",
+            "analysis": "どれほど＋喜んだ＋ことか: nhớ lại và cảm thán mức vui, không hỏi con số.",
+            "japanese": "合格の知らせを聞いて、どれほど喜んだことか。",
+            "vietnamese": "Nghe tin thi đỗ, tôi đã vui biết bao!",
+            "vocabulary": "合格（ごうかく）: thi đỗ; 知らせ（しらせ）: tin; 喜ぶ（よろこぶ）: vui.",
+            "vocabulary_furigana": "合格（ごうかく）: thi đỗ; 知らせ（しらせ）: tin; 喜ぶ（よろこぶ）: vui."
+          }
+        ],
+        "itemCode": "Bai_26_06_KotoKa",
+        "lessonId": "lesson-grammar-1793519399940-b9isd",
+        "createdAt": "2026-11-01T07:49:10.042Z",
+        "exampleJp": "離れて暮らしているあなたのことを、ご両親はどんなに心配していることか。",
+        "exampleVi": "Cha mẹ hẳn đang lo cho bạn sống xa nhà biết bao.",
+        "exercises": [
+          {
+            "stt": 1,
+            "hint": "Từ hỏi mức độ dùng để cảm thán nhiều công sức.",
+            "type": "multiple_choice",
+            "optionA": "どこに",
+            "optionB": "どんなに",
+            "optionC": "だれに",
+            "option_a": "どこに",
+            "option_b": "どんなに",
+            "option_c": "だれに",
+            "question": "この日を迎えるまで、（　）苦労したことか。"
+          },
+          {
+            "stt": 2,
+            "hint": "Bao nhiêu lần: 何回; nói trôi chảy: 日本語を流暢に話せる; luyện tập: 練習する.",
+            "type": "translate",
+            "question": "Dịch, dùng「ことか」: Tôi đã luyện tập bao nhiêu lần để nói được tiếng Nhật trôi chảy!"
+          }
+        ],
+        "jlptLevel": "N2",
+        "sortOrder": 10,
+        "structure": "どんなに／どれほど／何回 等 ＋ thể thông thường（Na-な／Na-である）＋ ことか／ことだろう",
+        "updatedAt": "2026-11-01T07:49:10.042Z",
+        "distinction": "ことか nhấn cảm thán; ことだろう cũng có thể hàm suy tưởng về cảm xúc người khác. Phân biệt với ことだ lời khuyên và のだろうか câu hỏi suy đoán thông thường.",
+        "explanation": "Thường gắn cảm xúc mạnh như 心配、喜び、苦労. Không phải câu hỏi yêu cầu người nghe đếm hoặc trả lời mức độ chính xác.",
+        "connectionRule": "どんなに／どれほど／何回 等 ＋ thể thông thường（Na-な／Na-である）＋ ことか／ことだろう",
+        "grammarPattern": "～ことだろう・～ことか",
+        "exampleAnalysis": "どんなに＋心配している＋ことか: cảm thán mức lo của cha mẹ."
+      }
+    ],
+    "exercises": [],
+    "answers": [],
+    "sort_order": 1,
+    "created_at": "2026-11-01T07:49:59.94+00:00",
+    "target_classes": [],
+    "category_id": "cat-grammar",
+    "start_at": null,
+    "deadline": null,
+    "class_schedules": {},
+    "folder_id": "lfolder-1793445723963-i0box"
+  }
+]

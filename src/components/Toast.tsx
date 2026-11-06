@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 
-type ToastType = 'success' | 'error' | 'info';
+type ToastType = 'success' | 'error' | 'info' | 'warning';
 
 interface ToastItem {
   id: string;
@@ -40,6 +40,8 @@ export function ToastContainer() {
               ? 'bg-emerald-600 text-white'
               : t.type === 'error'
               ? 'bg-red-600 text-white'
+              : t.type === 'warning'
+              ? 'bg-amber-600 text-white'
               : 'bg-slate-800 text-white'
           }`}
         >

@@ -1,7 +1,7 @@
 import type { Exam, User } from '@/types';
 import { useLanguage } from '@/context/LanguageContext';
 import { getSubjectMeta, getEffectiveDeadline } from '@/storage';
-import { StatusBadge, formatDate, daysUntil, ClassBadge } from './shared';
+import { StatusBadge, formatDate, daysUntil } from './shared';
 import { Clock, CalendarClock, CheckCircle2, ExternalLink } from 'lucide-react';
 
 interface ExamCardProps {
@@ -11,10 +11,9 @@ interface ExamCardProps {
   score?: number;
   onStart: (exam: Exam) => void;
   onMarkCompleted: (id: string) => void;
-  showTargetClasses?: boolean;
 }
 
-export function ExamCard({ exam, user, completed, score, onStart, onMarkCompleted, showTargetClasses = false }: ExamCardProps) {
+export function ExamCard({ exam, user, completed, score, onStart, onMarkCompleted }: ExamCardProps) {
   const { t } = useLanguage();
   const meta = getSubjectMeta(exam.subject);
   const effectiveDeadline = getEffectiveDeadline(exam, user);
@@ -46,12 +45,6 @@ export function ExamCard({ exam, user, completed, score, onStart, onMarkComplete
           {t('exam.deadline', { date: formatDate(effectiveDeadline) })}
         </span>
       </div>
-
-      {showTargetClasses && exam.targetClasses.length > 0 && (
-        <div className="mb-3">
-          <ClassBadge classes={exam.targetClasses} />
-        </div>
-      )}
 
       {exam.status === 'open' && !completed && (
         <div className="mb-3 text-xs font-medium text-amber-600">

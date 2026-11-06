@@ -1,9 +1,8 @@
-import { useState, useRef, useEffect, useMemo } from 'react';
+import { useState, useRef, useMemo } from 'react';
 import * as XLSX from 'xlsx';
 import type { Lesson, LessonExample, LessonExercise, LessonAnswer, ExerciseType, LessonCategory } from '@/types';
-import { loadClasses } from '@/storage';
 import { toast } from './Toast';
-import { X, Upload, FileSpreadsheet, Download, CheckCircle2, Users, FolderOpen, AlertTriangle, FileText } from 'lucide-react';
+import { X, Upload, FileSpreadsheet, Download, CheckCircle2, FolderOpen, AlertTriangle, FileText } from 'lucide-react';
 
 interface ParsedSheetResult {
   lesson: Lesson | null;
@@ -17,31 +16,21 @@ interface LessonImportModalProps {
   onClose: () => void;
   onImport: (lessons: Lesson[]) => void;
   categories: LessonCategory[];
+  defaultCategoryId?: string;
+  targetFolderId?: string | null;
 }
 
 const SKIP_SHEET_NAMES = ['huong_dan', 'huong dan', 'hướng dẫn', 'template', 'config', 'danh_muc', 'danh muc', 'muc_luc', 'muc luc', 'readme', 'guide', '说明'];
 const MIN_DATA_ROWS = 2;
 
-export function LessonImportModal({ onClose, onImport, categories }: LessonImportModalProps) {
+export function LessonImportModal({ onClose, onImport, categories, defaultCategoryId, targetFolderId }: LessonImportModalProps) {
   const [parsedResults, setParsedResults] = useState<ParsedSheetResult[]>([]);
   const [excludedIds, setExcludedIds] = useState<Set<string>>(new Set());
   const [fileName, setFileName] = useState('');
   const [dragOver, setDragOver] = useState(false);
   const [parsing, setParsing] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
-  const [classes, setClasses] = useState<string[]>([]);
-  const [selectedClasses, setSelectedClasses] = useState<string[]>([]);
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string>('');
-
-  useEffect(() => { loadClasses().then(setClasses); }, []);
-
-  const toggleClass = (cls: string) => {
-    setSelectedClasses((prev) => {
-      if (cls === 'Tất cả') return prev.includes('Tất cả') ? [] : ['Tất cả'];
-      const withoutAll = prev.filter((c) => c !== 'Tất cả');
-      return withoutAll.includes(cls) ? withoutAll.filter((c) => c !== cls) : [...withoutAll, cls];
-    });
-  };
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string>(defaultCategoryId || '');
 
   const validResults = useMemo(
     () => parsedResults.filter((r) => r.lesson && !r.skipped),
@@ -323,8 +312,9 @@ export function LessonImportModal({ onClose, onImport, categories }: LessonImpor
     }
     const withMeta = selectedLessons.map((l) => ({
       ...l,
-      targetClasses: selectedClasses,
-      categoryId: selectedCategoryId || null,
+      targetClasses: ['Tất cả'],
+      categoryId: selectedCategoryId || defaultCategoryId || null,
+      folderId: targetFolderId ?? null,
     }));
     onImport(withMeta);
     onClose();
@@ -442,27 +432,6 @@ export function LessonImportModal({ onClose, onImport, categories }: LessonImpor
                   <button key={cat.id} onClick={() => setSelectedCategoryId(cat.id)}
                     className={`rounded-lg px-2.5 py-1.5 text-[11px] font-medium transition-all ${selectedCategoryId === cat.id ? 'bg-indigo-600 text-white' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'}`}>
                     {cat.title}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Class selector */}
-            <div className="mb-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
-              <div className="mb-2 flex items-center gap-1.5">
-                <Users size={15} className="text-slate-500" />
-                <p className="text-xs font-semibold text-slate-700">Lớp áp dụng (tất cả bài học)</p>
-              </div>
-              <p className="mb-2 text-[10px] text-slate-400">Bỏ trống = tất cả các lớp đều xem được</p>
-              <div className="flex flex-wrap gap-1.5">
-                <button onClick={() => toggleClass('Tất cả')}
-                  className={`rounded-lg px-2.5 py-1.5 text-[11px] font-medium transition-all ${selectedClasses.includes('Tất cả') ? 'bg-indigo-600 text-white' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'}`}>
-                  Tất cả các lớp
-                </button>
-                {classes.map((cls) => (
-                  <button key={cls} onClick={() => toggleClass(cls)}
-                    className={`rounded-lg px-2.5 py-1.5 text-[11px] font-medium transition-all ${selectedClasses.includes(cls) ? 'bg-blue-600 text-white' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'}`}>
-                    {cls}
                   </button>
                 ))}
               </div>

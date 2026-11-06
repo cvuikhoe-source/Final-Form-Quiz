@@ -627,7 +627,7 @@ function ExamRow({ exam, copied, onMenu, onCopy }: {
         </div>
       </div>
       <span className="hidden w-[90px] shrink-0 md:block"><StatusBadge status={exam.status} /></span>
-      <span className="hidden w-[120px] shrink-0 text-xs text-slate-400 md:block">{exam.targetClasses.length > 0 ? t('exam.classCount', { count: exam.targetClasses.length }) : t('common.all')}</span>
+      <span className="hidden w-[120px] shrink-0 text-xs text-slate-400 md:block">{exam.folderId ? '📁 Thư mục' : 'Trang chủ'}</span>
       <span className="hidden w-[90px] shrink-0 text-xs text-slate-400 md:block">{formatDateShort(exam.createdAt)}</span>
       <button
         onClick={onCopy}

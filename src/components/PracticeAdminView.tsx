@@ -19,7 +19,7 @@ import { PracticeRunner } from '@/components/PracticeView';
 import { toast } from '@/components/Toast';
 import {
   Plus, Search, X, Check, Languages, BookOpen, FileText,
-  Headphones, Upload, Users, ChevronDown, FileSpreadsheet,
+  Headphones, Upload, ChevronDown, FileSpreadsheet,
   FolderPlus, Archive,
 } from 'lucide-react';
 
@@ -517,7 +517,7 @@ function PracticeEditor({ user, practice, lessons, defaultFolderId, onDone }: {
   const [audioUploading, setAudioUploading] = useState(false);
   const [audioFileName, setAudioFileName] = useState(practice?.audioFileName ?? '');
   const [audioSource, setAudioSource] = useState(practice?.audioSource ?? '');
-  const [targetClasses, setTargetClasses] = useState<string[]>(practice?.targetClasses ?? []);
+  const [targetClasses] = useState<string[]>(practice?.targetClasses ?? []);
   const [startAt, setStartAt] = useState(practice?.startAt?.slice(0, 10) ?? '');
   const [startTime, setStartTime] = useState(practice?.startAt ? practice.startAt.slice(11, 16) : '');
   const [deadline, setDeadline] = useState(practice?.deadline?.slice(0, 10) ?? '');
@@ -568,14 +568,6 @@ function PracticeEditor({ user, practice, lessons, defaultFolderId, onDone }: {
     targetClasses.forEach((c) => set.add(c));
     return Array.from(set).sort();
   }, [classesList, targetClasses]);
-
-  const toggleClass = (cls: string) => {
-    setTargetClasses((prev) => {
-      if (cls === 'Tất cả') return prev.includes('Tất cả') ? [] : ['Tất cả'];
-      const withoutAll = prev.filter((c) => c !== 'Tất cả');
-      return withoutAll.includes(cls) ? withoutAll.filter((c) => c !== cls) : [...withoutAll, cls];
-    });
-  };
 
   const composeISO = (date: string, time: string): string | null => {
     if (!date) return null;
@@ -868,24 +860,6 @@ function PracticeEditor({ user, practice, lessons, defaultFolderId, onDone }: {
             )}
           </div>
         )}
-
-        {/* Class assignment */}
-        <div>
-          <label className={labelCls}><Users size={12} className="mr-1 inline" />{t('padmin.form.classes')}</label>
-          <p className="mb-2 text-[10px] text-slate-400">{t('schedule.classesHint')}</p>
-          <div className="flex flex-wrap gap-2">
-            <button onClick={() => toggleClass('Tất cả')}
-              className={`rounded-lg px-3 py-2 text-xs font-medium transition-all ${targetClasses.includes('Tất cả') ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
-              {t('common.allClasses')}
-            </button>
-            {allClasses.map((cls) => (
-              <button key={cls} onClick={() => toggleClass(cls)}
-                className={`rounded-lg px-3 py-2 text-xs font-medium transition-all ${targetClasses.includes(cls) ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
-                {cls}
-              </button>
-            ))}
-          </div>
-        </div>
 
         {/* Schedule */}
         <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-3">

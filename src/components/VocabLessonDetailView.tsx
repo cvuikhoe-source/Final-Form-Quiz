@@ -1,15 +1,29 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import type { Lesson, User, VocabularyItem, VocabProgress, FlashcardSettings, MasteryStatus } from '@/types';
 import {
-  loadVocabItems, loadVocabProgress, saveVocabProgress,
+  loadVocabItems, loadAllVocabItems, upsertVocabItems, updateVocabItem,
+  loadVocabProgress, saveVocabProgress,
   loadFlashcardSettings, saveFlashcardSettings,
   getMasteryStatusLabel, getMasteryStatusColor,
 } from '@/storage';
+import type { VocabularyStudyGroup } from '@/lib/vocabStudyGroupService';
+import {
+  STUDY_GROUP_CONFIGS,
+  STUDY_GROUP_KEYS,
+  countVocabularyByStudyGroup,
+  filterVocabularyByStudyGroup,
+  buildVocabularyStudySession,
+  calculateNextReviewAt,
+} from '@/lib/vocabStudyGroupService';
 import { toast } from './Toast';
 import { VocabFlashcard } from './VocabFlashcard';
+import { VocabStudyGroupPicker } from './VocabStudyGroupPicker';
+import { VocabManualAddModal } from './VocabManualAddModal';
+import { VocabImportModal } from './VocabImportModal';
 import {
   ArrowLeft, Layers, List, BarChart3, Settings, Search,
-  CheckCircle2, Volume2, RefreshCw, BookOpen,
+  CheckCircle2, Volume2, RefreshCw, BookOpen, Plus, ChevronDown,
+  Edit3, FileSpreadsheet,
 } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 
@@ -30,12 +44,35 @@ export function VocabLessonDetailView({
   const { t } = useLanguage();
   const [tab, setTab] = useState<Tab>('flashcard');
   const [items, setItems] = useState<VocabularyItem[]>([]);
+  const [allSystemVocab, setAllSystemVocab] = useState<VocabularyItem[]>([]);
   const [progress, setProgress] = useState<Record<string, VocabProgress>>({});
   const [settings, setSettings] = useState<FlashcardSettings>(() => loadFlashcardSettings(currentUser.id));
   const [loading, setLoading] = useState(true);
   const [listSearch, setListSearch] = useState('');
   const [listJlptFilter, setListJlptFilter] = useState<string>('all');
-  const [listMasteryFilter, setListMasteryFilter] = useState<string>('all');
+  const [listGroupFilter, setListGroupFilter] = useState<VocabularyStudyGroup>('all');
+  const [selectedStudyGroup, setSelectedStudyGroup] = useState<VocabularyStudyGroup | null>(null);
+
+  // Modal & Menu states for adding vocabulary
+  const [showAddMenu, setShowAddMenu] = useState(false);
+  const [showManualAddModal, setShowManualAddModal] = useState(false);
+  const [showExcelImportModal, setShowExcelImportModal] = useState(false);
+  const addMenuRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleOutsideClick = (e: MouseEvent) => {
+      if (addMenuRef.current && !addMenuRef.current.contains(e.target as Node)) {
+        setShowAddMenu(false);
+      }
+    };
+    if (showAddMenu) {
+      document.addEventListener('mousedown', handleOutsideClick);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+    };
+  }, [showAddMenu]);
 
   useEffect(() => {
     (async () => {
@@ -49,6 +86,15 @@ export function VocabLessonDetailView({
       setLoading(false);
     })();
   }, [lesson.id, currentUser.id]);
+
+  // Load all system vocab items for cross-lesson duplicate checks when user can manage
+  useEffect(() => {
+    if (canManage) {
+      loadAllVocabItems()
+        .then(setAllSystemVocab)
+        .catch((e) => console.warn('Cannot load all vocab items:', e));
+    }
+  }, [canManage]);
 
   const viewedBackIds = useMemo(() => {
     const s = new Set<string>();
@@ -74,22 +120,40 @@ export function VocabLessonDetailView({
     return { total, viewed, evaluated, totalReviews, masteryDist, progressPct };
   }, [items, progress, viewedBackIds]);
 
-  const handleEvaluate = useCallback((item: VocabularyItem, status: MasteryStatus) => {
-    const existing = progress[item.id];
-    const newProgress: VocabProgress = {
-      masteryStatus: status,
-      reviewCount: (existing?.reviewCount ?? 0) + 1,
-      lastReviewedAt: new Date().toISOString(),
-      viewedBack: true,
-    };
-    saveVocabProgress(currentUser.id, lesson.id, item.id, newProgress);
-    setProgress((prev) => ({ ...prev, [item.id]: newProgress }));
+  const groupCounts = useMemo(() => {
+    return countVocabularyByStudyGroup(items, progress);
+  }, [items, progress]);
 
-    if (stats.evaluated + 1 >= stats.total && stats.total > 0) {
-      if (!completed) onMarkDone(lesson.id);
-      toast(t('vocab.toast.completed'), 'success');
+  const sessionItems = useMemo(() => {
+    if (!selectedStudyGroup) return [];
+    return buildVocabularyStudySession(items, progress, selectedStudyGroup);
+  }, [items, progress, selectedStudyGroup]);
+
+  const handleEvaluate = useCallback((item: VocabularyItem, status: MasteryStatus): boolean => {
+    try {
+      const existing = progress[item.id];
+      const nextReviewCount = (existing?.reviewCount ?? 0) + 1;
+      const nextReviewAt = calculateNextReviewAt(status, nextReviewCount);
+      const newProgress: VocabProgress = {
+        masteryStatus: status,
+        reviewCount: nextReviewCount,
+        lastReviewedAt: new Date().toISOString(),
+        nextReviewAt,
+        viewedBack: true,
+      };
+      saveVocabProgress(currentUser.id, lesson.id, item.id, newProgress);
+      setProgress((prev) => ({ ...prev, [item.id]: newProgress }));
+
+      if (stats.evaluated + 1 >= stats.total && stats.total > 0) {
+        if (!completed) onMarkDone(lesson.id);
+        toast(t('vocab.toast.completed'), 'success');
+      }
+      return true;
+    } catch (err) {
+      console.error('Lỗi khi lưu progress từ vựng:', err);
+      return false;
     }
-  }, [progress, currentUser.id, lesson.id, stats, completed, onMarkDone]);
+  }, [progress, currentUser.id, lesson.id, stats, completed, onMarkDone, t]);
 
   const handleFlipView = useCallback((itemId: string) => {
     if (viewedBackIds.has(itemId)) return;
@@ -110,20 +174,60 @@ export function VocabLessonDetailView({
     toast(t('vocab.toast.settingsSaved'), 'success');
   };
 
+  const handleVocabSaved = (savedItem: VocabularyItem, action: 'created' | 'updated') => {
+    if (action === 'created') {
+      setItems((prev) => [...prev, savedItem]);
+    } else {
+      setItems((prev) => prev.map((v) => (v.id === savedItem.id ? savedItem : v)));
+    }
+  };
+
+  const handleExcelImport = async (
+    _lessons: Lesson[],
+    newVocabs: VocabularyItem[],
+    updatedVocabs?: VocabularyItem[]
+  ) => {
+    try {
+      if (newVocabs.length > 0) {
+        await upsertVocabItems(newVocabs);
+      }
+      if (updatedVocabs && updatedVocabs.length > 0) {
+        for (const uv of updatedVocabs) {
+          await updateVocabItem(uv.id, uv);
+        }
+      }
+      // Tải lại danh sách từ vựng tươi mới từ database để cập nhật giao diện bên dưới
+      const freshItems = await loadVocabItems(lesson.id);
+      setItems(freshItems.filter((v) => v.active));
+    } catch (err: unknown) {
+      console.error('Lỗi khi lưu từ vựng từ Excel:', err);
+      toast('Có lỗi xảy ra khi lưu từ vựng vào hệ thống.', 'error');
+      throw err; // Bắn ra để VocabImportModal giải phóng loading state
+    }
+  };
+
   const filteredListItems = useMemo(() => {
-    return items.filter((v) => {
+    const groupFiltered = filterVocabularyByStudyGroup(items, progress, listGroupFilter);
+
+    return groupFiltered.filter((v) => {
+      const matchJlpt = listJlptFilter === 'all' || v.jlptLevel === listJlptFilter;
+      if (!matchJlpt) return false;
+
+      if (!listSearch) return true;
       const s = listSearch.toLowerCase();
-      const matchSearch =
+      return (
         v.vocabulary.toLowerCase().includes(s) ||
         v.readingHiragana.toLowerCase().includes(s) ||
-        v.meaningVi.toLowerCase().includes(s);
-      const matchJlpt = listJlptFilter === 'all' || v.jlptLevel === listJlptFilter;
-      const p = progress[v.id];
-      const mastery = p?.masteryStatus ?? 'new';
-      const matchMastery = listMasteryFilter === 'all' || mastery === listMasteryFilter;
-      return matchSearch && matchJlpt && matchMastery;
+        v.meaningVi.toLowerCase().includes(s) ||
+        (v.hanViet && v.hanViet.toLowerCase().includes(s)) ||
+        (v.kanjiBreakdown && v.kanjiBreakdown.some((k) =>
+          k.kanji.toLowerCase().includes(s) ||
+          k.hanViet.toLowerCase().includes(s) ||
+          k.meaningVi.toLowerCase().includes(s)
+        ))
+      );
     });
-  }, [items, listSearch, listJlptFilter, listMasteryFilter, progress]);
+  }, [items, progress, listGroupFilter, listJlptFilter, listSearch]);
 
   const jlptLevels = useMemo(() => {
     const set = new Set(items.map((v) => v.jlptLevel).filter(Boolean));
@@ -188,34 +292,112 @@ export function VocabLessonDetailView({
             <BookOpen size={48} className="mb-3 text-slate-300" />
             <p className="text-sm font-medium text-slate-500">{t('vocab.empty')}</p>
             {canManage && (
-              <p className="mt-1 text-xs text-slate-400">{t('vocab.emptyManageHint')}</p>
+              <div className="mt-4 flex flex-col sm:flex-row items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowManualAddModal(true)}
+                  className="flex items-center gap-1.5 rounded-xl bg-indigo-600 px-4 py-2 text-xs font-semibold text-white hover:bg-indigo-700 shadow-sm active:scale-95 transition-all"
+                >
+                  <Edit3 size={15} /> Thêm từ đầu tiên bằng tay
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowExcelImportModal(true)}
+                  className="flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 shadow-xs active:scale-95 transition-all"
+                >
+                  <FileSpreadsheet size={15} className="text-emerald-600" /> Nhập từ file Excel
+                </button>
+              </div>
             )}
           </div>
         ) : (
           <>
             {tab === 'flashcard' && (
-              <VocabFlashcard
-                items={items}
-                settings={settings}
-                onEvaluate={handleEvaluate}
-                onFlipBack={handleFlipView}
-                viewedBackIds={viewedBackIds}
-              />
+              selectedStudyGroup === null ? (
+                <VocabStudyGroupPicker
+                  counts={groupCounts}
+                  onSelectGroup={(g) => setSelectedStudyGroup(g)}
+                  lessonTitle={lesson.title}
+                />
+              ) : (
+                <VocabFlashcard
+                  items={sessionItems}
+                  settings={settings}
+                  onEvaluate={handleEvaluate}
+                  onFlipBack={handleFlipView}
+                  viewedBackIds={viewedBackIds}
+                  onClose={() => {
+                    setSelectedStudyGroup(null);
+                    setTab('list');
+                  }}
+                  onBackToGroupPicker={() => setSelectedStudyGroup(null)}
+                  studyGroup={selectedStudyGroup}
+                  onChangeStudyGroup={(newGroup) => setSelectedStudyGroup(newGroup)}
+                  groupCounts={groupCounts}
+                  lessonTitle={lesson.title}
+                />
+              )
             )}
 
             {tab === 'list' && (
               <div>
-                {/* Search */}
-                <div className="relative mb-3">
-                  <Search size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                  <input
-                    type="text"
-                    value={listSearch}
-                    onChange={(e) => setListSearch(e.target.value)}
-                    placeholder={t('vocab.searchPlaceholder')}
-                    className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-10 pr-4 text-sm shadow-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
-                  />
+                {/* Search & Action Toolbar */}
+                <div className="mb-3 flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
+                  <div className="relative flex-1">
+                    <Search size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <input
+                      type="text"
+                      value={listSearch}
+                      onChange={(e) => setListSearch(e.target.value)}
+                      placeholder={t('vocab.searchPlaceholder')}
+                      className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-10 pr-4 text-sm shadow-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+                    />
+                  </div>
+
+                  {/* Nút + Bổ sung từ vựng (Chỉ Admin / Teacher có canManage mới thấy) */}
+                  {canManage && (
+                    <div ref={addMenuRef} className="relative shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => setShowAddMenu((prev) => !prev)}
+                        className="flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-xs sm:text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 active:scale-95 transition-all"
+                      >
+                        <Plus size={16} />
+                        <span>+ Bổ sung từ vựng</span>
+                        <ChevronDown size={14} className={`transition-transform duration-200 ${showAddMenu ? 'rotate-180' : ''}`} />
+                      </button>
+
+                      {/* Dropdown Menu */}
+                      {showAddMenu && (
+                        <div className="absolute right-0 top-full mt-1.5 z-30 w-52 rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl dark:border-slate-800 dark:bg-slate-900 animate-scale-in">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setShowAddMenu(false);
+                              setShowManualAddModal(true);
+                            }}
+                            className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 dark:text-slate-200 dark:hover:bg-slate-800 transition-colors"
+                          >
+                            <Edit3 size={15} className="text-indigo-500" />
+                            <span>1. Thêm bằng tay</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setShowAddMenu(false);
+                              setShowExcelImportModal(true);
+                            }}
+                            className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-emerald-50 hover:text-emerald-600 dark:text-slate-200 dark:hover:bg-slate-800 transition-colors"
+                          >
+                            <FileSpreadsheet size={15} className="text-emerald-500" />
+                            <span>2. Nhập bằng Excel</span>
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
+
                 {/* Filters */}
                 <div className="mb-4 flex flex-wrap gap-2">
                   {jlptLevels.map((lv) => (
@@ -229,18 +411,32 @@ export function VocabLessonDetailView({
                       {lv}
                     </button>
                   ))}
-                  {(['new', 'forgot', 'hard', 'almost', 'mastered'] as MasteryStatus[]).map((ms) => (
-                    <button
-                      key={ms}
-                      onClick={() => setListMasteryFilter(listMasteryFilter === ms ? 'all' : ms)}
-                      className={`rounded-full px-3 py-1 text-xs font-medium transition-all ${
-                        listMasteryFilter === ms ? 'bg-blue-600 text-white' : 'bg-white text-slate-600 border border-slate-200'
-                      }`}
-                    >
-                      {getMasteryStatusLabel(ms)}
-                    </button>
-                  ))}
+                  {STUDY_GROUP_KEYS.map((gKey) => {
+                    const cfg = STUDY_GROUP_CONFIGS[gKey];
+                    const count = groupCounts[gKey] ?? 0;
+                    const isSelected = listGroupFilter === gKey;
+                    return (
+                      <button
+                        key={gKey}
+                        type="button"
+                        onClick={() => setListGroupFilter(listGroupFilter === gKey && gKey !== 'all' ? 'all' : gKey)}
+                        className={`rounded-full px-3 py-1 text-xs font-medium transition-all flex items-center gap-1.5 ${
+                          isSelected
+                            ? 'bg-blue-600 text-white shadow-xs'
+                            : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+                        }`}
+                      >
+                        <span>{cfg.label}</span>
+                        <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
+                          isSelected ? 'bg-blue-700 text-white' : 'bg-slate-100 text-slate-500'
+                        }`}>
+                          {count}
+                        </span>
+                      </button>
+                    );
+                  })}
                 </div>
+
                 {/* Vocab list */}
                 {filteredListItems.length > 0 ? (
                   <div className="space-y-2">
@@ -251,29 +447,52 @@ export function VocabLessonDetailView({
                         <div key={v.id} className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
                           <div className="flex items-start justify-between gap-3">
                             <div className="min-w-0 flex-1">
-                              <div className="flex items-center gap-2">
+                              <div className="flex flex-wrap items-center gap-2">
                                 <p className="font-jp text-base font-bold text-slate-800">{v.vocabulary}</p>
+                                {v.hanViet && (
+                                  <span className="rounded-md bg-purple-50 border border-purple-200/70 px-2 py-0.5 text-[11px] font-bold text-purple-700 uppercase">
+                                    {v.hanViet}
+                                  </span>
+                                )}
                                 <button
+                                  type="button"
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     if ('speechSynthesis' in window) {
                                       window.speechSynthesis.cancel();
-                                      const utt = new SpeechSynthesisUtterance(v.audioText || v.vocabulary);
+                                      const utt = new SpeechSynthesisUtterance(v.audioText || v.readingHiragana || v.vocabulary);
                                       utt.lang = 'ja-JP';
                                       window.speechSynthesis.speak(utt);
                                     } else {
                                       toast(t('vocab.noSpeechSupport'), 'error');
                                     }
                                   }}
-                                  className="text-slate-300 hover:text-blue-500 transition-colors"
+                                  aria-label="Phát âm từ vựng"
+                                  className="text-slate-400 hover:text-blue-500 transition-colors p-0.5"
                                 >
-                                  <Volume2 size={15} />
+                                  <Volume2 size={16} />
                                 </button>
                               </div>
                               {v.readingHiragana && (
-                                <p className="font-jp text-xs text-blue-500">{v.readingHiragana}</p>
+                                <p className="font-jp text-xs font-medium text-blue-600 mt-0.5">{v.readingHiragana}</p>
                               )}
-                              <p className="text-sm text-emerald-700 font-medium">{v.meaningVi}</p>
+                              <p className="text-sm text-emerald-800 font-medium mt-1">{v.meaningVi}</p>
+
+                              {/* Kanji Breakdown tóm tắt */}
+                              {v.kanjiBreakdown && v.kanjiBreakdown.length > 0 && (
+                                <div className="mt-2 flex flex-wrap gap-1.5">
+                                  {v.kanjiBreakdown.map((k, idx) => (
+                                    <span key={idx} className="inline-flex items-center gap-1 rounded bg-indigo-50/70 border border-indigo-100 px-2 py-0.5 text-[10px] text-indigo-900">
+                                      <strong className="font-jp text-xs">{k.kanji}</strong>: <span className="font-semibold uppercase text-purple-700">{k.hanViet}</span> ({k.meaningVi})
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+                              {v.kanjiMemoryHint && (
+                                <p className="mt-1.5 text-[11px] text-amber-900 bg-amber-50 border border-amber-200/60 rounded-md px-2 py-0.5 inline-flex items-center gap-1">
+                                  <span>💡</span> {v.kanjiMemoryHint}
+                                </p>
+                              )}
                               <div className="mt-1 flex items-center gap-2 text-[10px] text-slate-400">
                                 {v.jlptLevel && <span className="rounded bg-indigo-100 px-1.5 py-0.5 font-medium text-indigo-600">{v.jlptLevel}</span>}
                                 {v.wordType && <span>{v.wordType}</span>}
@@ -317,28 +536,27 @@ export function VocabLessonDetailView({
                     { label: t('vocab.stat.viewed'), value: stats.viewed, color: 'text-blue-600' },
                     { label: t('vocab.stat.evaluated'), value: stats.evaluated, color: 'text-indigo-600' },
                     { label: t('vocab.stat.reviews'), value: stats.totalReviews, color: 'text-emerald-600' },
-                  ].map((s) => (
-                    <div key={s.label} className="rounded-xl border border-slate-200 bg-white p-3 text-center shadow-sm">
-                      <p className={`text-2xl font-bold ${s.color}`}>{s.value}</p>
-                      <p className="mt-0.5 text-[10px] font-medium text-slate-400">{s.label}</p>
+                  ].map(({ label, value, color }) => (
+                    <div key={label} className="rounded-xl border border-slate-200 bg-white p-3.5 shadow-sm">
+                      <p className="text-xs text-slate-400">{label}</p>
+                      <p className={`mt-1 text-2xl font-bold ${color}`}>{value}</p>
                     </div>
                   ))}
                 </div>
                 {/* Mastery distribution */}
-                <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-                  <h3 className="mb-3 text-sm font-bold text-slate-700">{t('vocab.masteryTitle')}</h3>
+                <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                  <p className="mb-3 text-xs font-bold text-slate-700 uppercase tracking-wider">{t('vocab.masteryTitle')}</p>
                   <div className="space-y-2">
-                    {(['new', 'forgot', 'hard', 'almost', 'mastered'] as MasteryStatus[]).map((ms) => {
+                    {(['mastered', 'almost', 'hard', 'forgot', 'new'] as MasteryStatus[]).map((ms) => {
                       const count = stats.masteryDist[ms];
-                      const pct = stats.total > 0 ? (count / stats.total) * 100 : 0;
-                      const barColor = ms === 'forgot' ? 'bg-red-500' : ms === 'hard' ? 'bg-orange-500' : ms === 'almost' ? 'bg-blue-500' : ms === 'mastered' ? 'bg-emerald-500' : 'bg-slate-300';
+                      const pct = stats.total > 0 ? Math.round((count / stats.total) * 100) : 0;
                       return (
                         <div key={ms} className="flex items-center gap-3">
-                          <span className="w-20 text-xs font-medium text-slate-600">{getMasteryStatusLabel(ms)}</span>
-                          <div className="h-4 flex-1 overflow-hidden rounded-full bg-slate-100">
-                            <div className={`h-full rounded-full ${barColor} transition-all duration-500`} style={{ width: `${pct}%` }} />
+                          <span className="w-20 text-xs text-slate-600">{getMasteryStatusLabel(ms)}</span>
+                          <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-100">
+                            <div className="h-full bg-blue-500 rounded-full transition-all" style={{ width: `${pct}%` }} />
                           </div>
-                          <span className="w-8 text-right text-xs font-semibold text-slate-700">{count}</span>
+                          <span className="w-12 text-right text-xs text-slate-400">{count} ({pct}%)</span>
                         </div>
                       );
                     })}
@@ -349,12 +567,12 @@ export function VocabLessonDetailView({
 
             {tab === 'settings' && (
               <div className="space-y-4">
-                <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-                  <h3 className="mb-3 text-sm font-bold text-slate-700">{t('vocab.settings.title')}</h3>
+                <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                  <p className="mb-4 text-xs font-bold text-slate-700 uppercase tracking-wider">{t('vocab.settings.title')}</p>
                   <div className="space-y-4">
                     {/* Font size */}
                     <div>
-                      <label className="mb-2 block text-xs font-medium text-slate-600">{t('vocab.settings.fontSize')}</label>
+                      <label className="block text-xs font-semibold text-slate-600 mb-1.5">{t('vocab.settings.fontSize')}</label>
                       <div className="flex gap-2">
                         {(['small', 'medium', 'large'] as const).map((fs) => (
                           <button
@@ -397,6 +615,28 @@ export function VocabLessonDetailView({
           </>
         )}
       </div>
+
+      {/* Modal Thêm Từ Thủ Công */}
+      {showManualAddModal && (
+        <VocabManualAddModal
+          lesson={lesson}
+          existingItems={items}
+          allSystemItems={allSystemVocab}
+          onClose={() => setShowManualAddModal(false)}
+          onSaved={handleVocabSaved}
+        />
+      )}
+
+      {/* Modal Nhập Bằng Excel vào bài học hiện tại */}
+      {showExcelImportModal && (
+        <VocabImportModal
+          targetLesson={lesson}
+          existingItems={items}
+          allSystemItems={allSystemVocab}
+          onClose={() => setShowExcelImportModal(false)}
+          onImport={handleExcelImport}
+        />
+      )}
     </div>
   );
 }

@@ -16,6 +16,7 @@ import { AutoTextarea } from '@/components/AutoTextarea';
 
 interface ReadingAdminModalProps {
   lesson: ReadingLesson | null;
+  targetFolderId?: string | null;
   onClose: () => void;
   onSaved: () => void;
 }
@@ -44,7 +45,7 @@ function parseNum(v: string, dflt: number): number {
   return isFinite(n) ? Math.round(n) : dflt;
 }
 
-export function ReadingAdminModal({ lesson, onClose, onSaved }: ReadingAdminModalProps) {
+export function ReadingAdminModal({ lesson, targetFolderId, onClose, onSaved }: ReadingAdminModalProps) {
   const isNew = lesson === null;
   const [lessonNo, setLessonNo] = useState(lesson?.lessonNo ?? 1);
   const [titleJa, setTitleJa] = useState(lesson?.titleJa ?? '');
@@ -180,6 +181,7 @@ export function ReadingAdminModal({ lesson, onClose, onSaved }: ReadingAdminModa
         estimatedMinutes: parseNum(getStr(r.data, 'estimated_minutes'), 5),
         displayOrder: parseNum(getStr(r.data, 'display_order'), idx + 1),
         status: (getStr(r.data, 'status').toLowerCase() || 'draft') as ReadingStatus,
+        folderId: targetFolderId ?? null,
         createdAt: new Date().toISOString(),
       }));
       const questionsIn: ReadingQuestionFull[] = validRows.filter((r) => r.sheet === 'QUESTIONS').map((r, idx) => ({
@@ -231,7 +233,7 @@ export function ReadingAdminModal({ lesson, onClose, onSaved }: ReadingAdminModa
     } finally {
       setSaving(false);
     }
-  }, [parsed, saving, validRows, onSaved, onClose]);
+  }, [parsed, saving, validRows, targetFolderId, onSaved, onClose]);
 
   const downloadTemplate = useCallback(() => {
     const readings = [{
@@ -332,6 +334,7 @@ export function ReadingAdminModal({ lesson, onClose, onSaved }: ReadingAdminModa
         estimatedMinutes,
         displayOrder: lesson?.displayOrder ?? lessonNo,
         status,
+        folderId: lesson?.folderId ?? targetFolderId ?? null,
         createdAt: lesson?.createdAt ?? new Date().toISOString(),
       };
       await upsertReadingLessons([l]);
@@ -344,7 +347,7 @@ export function ReadingAdminModal({ lesson, onClose, onSaved }: ReadingAdminModa
     } finally {
       setSaving(false);
     }
-  }, [titleJa, readingTextJa, questions, grammar, saving, lesson, lessonNo, titleVi, level, category, translationVi, imageUrl, estimatedMinutes, status, readingId, onSaved, onClose]);
+  }, [titleJa, readingTextJa, questions, grammar, saving, lesson, lessonNo, titleVi, level, category, translationVi, imageUrl, estimatedMinutes, status, readingId, targetFolderId, onSaved, onClose]);
 
   const inputCls = 'w-full rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-700 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100';
   const labelCls = 'mb-1 block text-xs font-semibold text-slate-600';

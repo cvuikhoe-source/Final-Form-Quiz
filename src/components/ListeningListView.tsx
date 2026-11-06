@@ -1,11 +1,13 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import {
-  Search, Plus, Pencil, Archive, Send, ChevronLeft, Headphones, Trash2, Clock, RotateCcw,
+  Pencil, Archive, Send, Headphones, Trash2, Clock, RotateCcw,
 } from 'lucide-react';
-import type { ListeningLesson, ListeningStatus, User } from '@/types';
+import type { ListeningLesson, ListeningStatus, User, LessonFolder } from '@/types';
 import { ListeningAdminModal } from '@/components/ListeningAdminModal';
 import { useLanguage } from '@/context/LanguageContext';
 import { loadListeningLessons, updateListeningLesson, deleteListeningLesson } from '@/storage';
+import { loadLessonFolders, moveLessonToFolder } from '@/lib/lessonFolderService';
+import { LessonFolderExplorer } from '@/components/LessonFolderExplorer';
 
 interface ListeningListViewProps {
   currentUser: User;
@@ -39,31 +41,41 @@ export function ListeningListView({ currentUser, onOpen, onBack }: ListeningList
   const { t } = useLanguage();
   const isManager = currentUser.role === 'admin' || currentUser.role === 'teacher';
   const [lessons, setLessons] = useState<ListeningLesson[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
+  const [folders, setFolders] = useState<LessonFolder[]>([]);
+  const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
   const [levelFilter, setLevelFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [editing, setEditing] = useState<ListeningLesson | null>(null);
   const [creating, setCreating] = useState(false);
+  const [createFolderId, setCreateFolderId] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<ListeningLesson | null>(null);
 
-  useEffect(() => {
-    loadListeningLessons().then((ls) => { setLessons(ls); setLoading(false); });
+  const refreshLessons = useCallback(async () => {
+    const ls = await loadListeningLessons();
+    setLessons(ls);
   }, []);
 
-  const refresh = async () => { setLessons(await loadListeningLessons()); };
+  const refreshFolders = useCallback(async () => {
+    try {
+      const f = await loadLessonFolders('cat-listening');
+      setFolders(f);
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  useEffect(() => {
+    refreshLessons();
+    refreshFolders();
+  }, [refreshLessons, refreshFolders]);
 
   const filtered = useMemo(() => {
     return lessons
       .filter((l) => (isManager ? true : visibleForStudent(l, currentUser)))
       .filter((l) => levelFilter === 'all' || l.level === levelFilter)
       .filter((l) => statusFilter === 'all' || l.status === statusFilter)
-      .filter((l) => {
-        const q = search.toLowerCase();
-        return !q || l.title.toLowerCase().includes(q) || l.subtitle.toLowerCase().includes(q) || l.category.toLowerCase().includes(q);
-      })
       .sort((a, b) => a.sortOrder - b.sortOrder || a.title.localeCompare(b.title));
-  }, [lessons, search, levelFilter, statusFilter, currentUser, isManager]);
+  }, [lessons, levelFilter, statusFilter, currentUser, isManager]);
 
   const setStatus = async (lesson: ListeningLesson, status: ListeningStatus) => {
     await updateListeningLesson(lesson.id, { status });
@@ -78,82 +90,137 @@ export function ListeningListView({ currentUser, onOpen, onBack }: ListeningList
 
   return (
     <div className="px-4 pb-28 pt-4 md:px-0 md:pb-8">
-      <button onClick={onBack} className="mb-3 flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-700">
-        <ChevronLeft size={18} /> {t('listening.backToLessons')}
-      </button>
+      <LessonFolderExplorer<ListeningLesson>
+        categoryId="cat-listening"
+        categoryTitle={t('listening.title')}
+        currentUser={currentUser}
+        canManage={isManager}
+        folders={folders}
+        items={filtered}
+        itemFolderId={(l) => l.folderId ?? null}
+        getItemId={(l) => l.id}
+        getItemTitle={(l) => l.title}
+        getItemSearchText={(l) => `${l.title} ${l.subtitle} ${l.category} ${l.level}`}
+        onRefreshFolders={refreshFolders}
+        onRefreshItems={refreshLessons}
+        onMoveItemToFolder={async (lesson, targetFolderId) => {
+          await moveLessonToFolder('listening', lesson.id, targetFolderId);
+          await updateListeningLesson(lesson.id, { folderId: targetFolderId });
+        }}
+        onCreateItem={(folderId) => {
+          setCreateFolderId(folderId);
+          setCreating(true);
+        }}
+        onBackToCategories={onBack}
+        createItemLabel={t('listening.create')}
+        emptyItemText={t('listening.empty')}
+        currentFolderId={currentFolderId}
+        onFolderChange={setCurrentFolderId}
+        extraHeaderActions={
+          <div className="flex flex-wrap items-center gap-1.5">
+            <select
+              value={levelFilter}
+              onChange={(e) => setLevelFilter(e.target.value)}
+              className="rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-700 outline-none"
+            >
+              <option value="all">Tất cả trình độ</option>
+              {LEVELS.map((lv) => (
+                <option key={lv} value={lv}>{lv}</option>
+              ))}
+            </select>
+            {isManager && (
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-700 outline-none"
+              >
+                <option value="all">{t('listening.filterAllStatuses')}</option>
+                <option value="DRAFT">{t('common.statusDraft')}</option>
+                <option value="PUBLISHED">{t('common.statusPublished')}</option>
+                <option value="ARCHIVED">{t('common.statusArchived')}</option>
+              </select>
+            )}
+          </div>
+        }
+        renderItemCard={(lesson, isList) => {
+          if (isList) {
+            return (
+              <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-white p-3 hover:border-blue-200 transition-all">
+                <div
+                  onClick={() => onOpen(lesson)}
+                  className="flex items-center gap-3 min-w-0 flex-1 cursor-pointer"
+                >
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-sm">
+                    <Headphones size={18} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="truncate text-xs font-bold text-slate-800">{lesson.title}</span>
+                      <span className={`rounded-full px-1.5 py-0.2 text-[9px] font-bold ${LEVEL_BADGE[lesson.level] ?? ''}`}>
+                        {lesson.level}
+                      </span>
+                      {isManager && (
+                        <span className={`rounded-full px-1.5 py-0.2 text-[9px] font-bold ${STATUS_BADGE[lesson.status]}`}>
+                          {lesson.status === 'DRAFT' ? t('common.statusDraft') : lesson.status === 'PUBLISHED' ? t('common.statusPublished') : t('common.statusArchived')}
+                        </span>
+                      )}
+                    </div>
+                    {lesson.subtitle && <p className="text-[10px] text-slate-400 truncate">{lesson.subtitle}</p>}
+                  </div>
+                </div>
 
-      <div className="mb-4 flex items-start justify-between">
-        <div>
-          <h2 className="text-lg font-bold text-slate-800">{t('listening.title')}</h2>
-          <p className="text-sm text-slate-500">{t('listening.count', { count: filtered.length })}</p>
-        </div>
-        {isManager && (
-          <button
-            onClick={() => setCreating(true)}
-            className="flex items-center gap-1.5 rounded-xl bg-blue-600 px-3 py-2 text-xs font-semibold text-white shadow-md hover:bg-blue-700"
-          >
-            <Plus size={15} /> {t('listening.create')}
-          </button>
-        )}
-      </div>
+                {isManager && (
+                  <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                    <button
+                      onClick={() => setEditing(lesson)}
+                      className="rounded-lg p-1.5 text-slate-400 hover:text-blue-600 hover:bg-slate-50"
+                      title={t('common.edit')}
+                    >
+                      <Pencil size={13} />
+                    </button>
+                    {lesson.status === 'DRAFT' && (
+                      <button
+                        onClick={() => setStatus(lesson, 'PUBLISHED')}
+                        className="rounded-lg p-1.5 text-emerald-600 hover:bg-emerald-50"
+                        title={t('common.publish')}
+                      >
+                        <Send size={13} />
+                      </button>
+                    )}
+                    {lesson.status === 'PUBLISHED' && (
+                      <button
+                        onClick={() => setStatus(lesson, 'ARCHIVED')}
+                        className="rounded-lg p-1.5 text-amber-600 hover:bg-amber-50"
+                        title={t('common.archive')}
+                      >
+                        <Archive size={13} />
+                      </button>
+                    )}
+                    {lesson.status === 'ARCHIVED' && (
+                      <button
+                        onClick={() => setStatus(lesson, 'DRAFT')}
+                        className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-50"
+                        title={t('common.restore')}
+                      >
+                        <RotateCcw size={13} />
+                      </button>
+                    )}
+                    <button
+                      onClick={() => setConfirmDelete(lesson)}
+                      className="rounded-lg p-1.5 text-red-500 hover:bg-red-50"
+                      title={t('common.delete')}
+                    >
+                      <Trash2 size={13} />
+                    </button>
+                  </div>
+                )}
+              </div>
+            );
+          }
 
-      {/* Search */}
-      <div className="relative mb-3">
-        <Search size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder={t('listening.searchPlaceholder')}
-          className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-10 pr-4 text-sm shadow-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
-        />
-      </div>
-
-      {/* Filters */}
-      <div className="mb-4 flex flex-wrap gap-2">
-        <button
-          onClick={() => setLevelFilter('all')}
-          className={`rounded-full px-3 py-1.5 text-xs font-medium transition-all ${levelFilter === 'all' ? 'bg-blue-600 text-white' : 'bg-white text-slate-600 border border-slate-200'}`}
-        >
-          {t('common.all')}
-        </button>
-        {LEVELS.map((lv) => (
-          <button
-            key={lv}
-            onClick={() => setLevelFilter(lv)}
-            className={`rounded-full px-3 py-1.5 text-xs font-medium transition-all ${levelFilter === lv ? 'bg-blue-600 text-white' : 'bg-white text-slate-600 border border-slate-200'}`}
-          >
-            {lv}
-          </button>
-        ))}
-        {isManager && (
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="ml-auto rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-600"
-          >
-            <option value="all">{t('listening.filterAllStatuses')}</option>
-            <option value="DRAFT">{t('common.statusDraft')}</option>
-            <option value="PUBLISHED">{t('common.statusPublished')}</option>
-            <option value="ARCHIVED">{t('common.statusArchived')}</option>
-          </select>
-        )}
-      </div>
-
-      {/* List */}
-      {loading ? (
-        <div className="flex justify-center py-16">
-          <div className="h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-blue-600" />
-        </div>
-      ) : filtered.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 text-center">
-          <Headphones size={48} className="mb-3 text-slate-300" />
-          <p className="text-sm font-medium text-slate-500">{t('listening.empty')}</p>
-        </div>
-      ) : (
-        <div className="space-y-2.5 md:grid md:grid-cols-2 md:gap-4 md:space-y-0 lg:grid-cols-3">
-          {filtered.map((lesson) => (
-            <div key={lesson.id} className="group rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-all hover:border-blue-200 hover:shadow-md">
+          // Grid card
+          return (
+            <div className="group rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-all hover:border-blue-200 hover:shadow-md">
               <div className="flex items-start gap-3">
                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-md">
                   <Headphones size={20} />
@@ -164,7 +231,9 @@ export function ListeningListView({ currentUser, onOpen, onBack }: ListeningList
                       <p className="truncate text-sm font-bold text-slate-800">{lesson.title}</p>
                       <span className={`rounded-full px-1.5 py-0.5 text-[9px] font-bold ${LEVEL_BADGE[lesson.level] ?? ''}`}>{lesson.level}</span>
                       {isManager && (
-                        <span className={`rounded-full px-1.5 py-0.5 text-[9px] font-bold ${STATUS_BADGE[lesson.status]}`}>{lesson.status === 'DRAFT' ? t('common.statusDraft') : lesson.status === 'PUBLISHED' ? t('common.statusPublished') : t('common.statusArchived')}</span>
+                        <span className={`rounded-full px-1.5 py-0.5 text-[9px] font-bold ${STATUS_BADGE[lesson.status]}`}>
+                          {lesson.status === 'DRAFT' ? t('common.statusDraft') : lesson.status === 'PUBLISHED' ? t('common.statusPublished') : t('common.statusArchived')}
+                        </span>
                       )}
                     </div>
                     {lesson.subtitle && <p className="mt-0.5 line-clamp-1 text-xs text-slate-500">{lesson.subtitle}</p>}
@@ -203,22 +272,27 @@ export function ListeningListView({ currentUser, onOpen, onBack }: ListeningList
                 </div>
               </div>
             </div>
-          ))}
-        </div>
-      )}
+          );
+        }}
+      />
 
       {editing && (
         <ListeningAdminModal
           lesson={editing}
+          targetFolderId={editing.folderId ?? null}
           onClose={() => setEditing(null)}
-          onSaved={refresh}
+          onSaved={refreshLessons}
         />
       )}
       {creating && (
         <ListeningAdminModal
           lesson={null}
-          onClose={() => setCreating(false)}
-          onSaved={refresh}
+          targetFolderId={createFolderId}
+          onClose={() => {
+            setCreating(false);
+            setCreateFolderId(null);
+          }}
+          onSaved={refreshLessons}
         />
       )}
       {confirmDelete && (

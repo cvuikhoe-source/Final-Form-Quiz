@@ -144,6 +144,32 @@
 .animate-fade-in { animation: fade-in 0.2s ease-out; }
 .animate-scale-in { animation: scale-in 0.2s ease-out; }
 
+/* ─── Flashcard Page Turn Transitions ───────────────────────── */
+@keyframes card-slide-out-left {
+  0% { transform: translateX(0) rotate(0deg); opacity: 1; }
+  100% { transform: translateX(-110%) rotate(-4deg); opacity: 0; }
+}
+
+@keyframes card-slide-in-right {
+  0% { transform: translateX(110%) rotate(4deg); opacity: 0; }
+  100% { transform: translateX(0) rotate(0deg); opacity: 1; }
+}
+
+@keyframes card-slide-out-right {
+  0% { transform: translateX(0) rotate(0deg); opacity: 1; }
+  100% { transform: translateX(110%) rotate(4deg); opacity: 0; }
+}
+
+@keyframes card-slide-in-left {
+  0% { transform: translateX(-110%) rotate(-4deg); opacity: 0; }
+  100% { transform: translateX(0) rotate(0deg); opacity: 1; }
+}
+
+.animate-card-slide-out-left { animation: card-slide-out-left 0.18s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+.animate-card-slide-in-right { animation: card-slide-in-right 0.22s cubic-bezier(0, 0, 0.2, 1) forwards; }
+.animate-card-slide-out-right { animation: card-slide-out-right 0.18s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+.animate-card-slide-in-left { animation: card-slide-in-left 0.22s cubic-bezier(0, 0, 0.2, 1) forwards; }
+
 /* ─── Flashcard 3D flip ──────────────────────────────────────── */
 .flashcard-3d {
   perspective: 1200px;
@@ -168,7 +194,68 @@
 .flashcard-back {
   transform: rotateX(180deg);
 }
+
+/* ─── Reading Exam 3D Flip Card ─────────────────────────────── */
+.reading-flip-card-wrapper {
+  perspective: 1200px;
+  -webkit-perspective: 1200px;
+}
+.reading-flip-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.reading-flip-card-inner.flipped {
+  transform: rotateY(180deg);
+  -webkit-transform: rotateY(180deg);
+}
+.reading-flip-card-face {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  -webkit-font-smoothing: subpixel-antialiased;
+}
+.reading-flip-card-front {
+  transform: rotateY(0deg);
+  -webkit-transform: rotateY(0deg);
+  z-index: 2;
+}
+.reading-flip-card-back {
+  transform: rotateY(180deg);
+  -webkit-transform: rotateY(180deg);
+  z-index: 1;
+}
+
+/* Reduced motion / animations disabled */
+.reading-flip-card-inner.no-anim {
+  transition: none !important;
+  transform: none !important;
+  -webkit-transform: none !important;
+}
+.reading-flip-card-inner.no-anim.flipped .reading-flip-card-front {
+  display: none !important;
+}
+.reading-flip-card-inner.no-anim.flipped .reading-flip-card-back {
+  display: block !important;
+  transform: none !important;
+  -webkit-transform: none !important;
+}
+.reading-flip-card-inner.no-anim:not(.flipped) .reading-flip-card-back {
+  display: none !important;
+}
 @media (prefers-reduced-motion: reduce) {
+  .animate-card-slide-out-left,
+  .animate-card-slide-in-right,
+  .animate-card-slide-out-right,
+  .animate-card-slide-in-left {
+    animation: none !important;
+  }
   .flashcard-inner {
     transition: none;
   }
